@@ -10,3 +10,9 @@ pom.xml.asc
 .lein-plugins/
 .lein-failures
 .nrepl-port
+
+\.idea/libraries/
+
+*.iml
+
+\.idea/
