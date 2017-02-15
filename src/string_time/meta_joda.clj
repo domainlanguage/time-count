@@ -10,9 +10,9 @@
   (case scale
     :year (Years/years 1)
     :month (Months/months 1)
-    :weeks (Weeks/weeks 1)
     :day (Days/days 1)
     :hour (Hours/hours 1)
+    :week (Weeks/weeks 1)
     :no-match))
 
 
@@ -23,6 +23,8 @@
     [:hour :day] (fn [^DateTime dt] (.hourOfDay dt))
     [:minute :hour] (fn [^DateTime dt] (.hourOfDay dt))
     [:day :year] (fn [^DateTime dt] (.dayOfYear dt))
+    [:week :week-year] (fn [^DateTime dt] (.weekOfWeekyear dt))
+    [:day :week] (fn [^DateTime dt] (.dayOfWeek dt))
     :no-match))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -36,7 +38,10 @@
    "yyyy-MM-dd"         [:day :month :year]
    "yyyy-MM-dd'T'HH"    [:hour :day :month :year]
    "yyyy-MM-dd'T'HH:mm" [:minute :hour :day :month :year]
-   "yyyy-DDD"           [:day :year]})
+   "yyyy-DDD"           [:day :year]
+   "xxxx" [:week-year]
+   "xxxx-'W'ww" [:week :week-year]
+   "xxxx-'W'ww-e" [:day :week :week-year]})
 
 (def nesting-to-pattern
   (map-invert pattern-to-nesting))
@@ -45,17 +50,32 @@
 
 (defn formatter-for-nesting [nesting] (-> nesting nesting-to-pattern formatter-for-pattern))
 
+(defn time-string-pattern [time-string]
+  (cond
+    (re-matches #"\d\d\d\d" time-string) "yyyy"
+    (re-matches #"\d\d\d\d-\d\d" time-string) "yyyy-MM"
+    (re-matches #"\d\d\d\d-\d\d-\d\d" time-string) "yyyy-MM-dd"
+    (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d" time-string) "yyyy-MM-dd'T'HH"
+    (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d:\d\d" time-string) "yyyy-MM-dd'T'HH:mm"
+    (re-matches #"\d\d\d\d-\d\d\d" time-string) "yyyy-DDD"
+    (re-matches #"\d\d\d\d-W\d\d" time-string) "xxxx-'W'ww"
+    (re-matches #"\d\d\d\d-W\d\d-\d" time-string) "xxxx-'W'ww-e"
+    :else :NONE)
+  )
 
-(defn destringifier [pattern]
-  (fn [date-string]
+(defn destringify
+  ([pattern time-string]
     (cons
-      (.parseDateTime (DateTimeFormat/forPattern pattern) date-string)
-      (pattern-to-nesting pattern))))
+      (.parseDateTime (DateTimeFormat/forPattern pattern) time-string)
+      (pattern-to-nesting pattern)))
+  ([time-string]
+    (destringify (time-string-pattern time-string) time-string)))
+
 
 (defn destringifier-from-scales [nesting]
-  (fn [date-string]
+  (fn [time-string]
     (cons
-      (.parseDateTime (formatter-for-nesting nesting) date-string)
+      (.parseDateTime (formatter-for-nesting nesting) time-string)
       nesting)))
 
 (defn stringify [[^DateTime date & nesting]]
@@ -67,10 +87,19 @@
       (stringify [(DateTime. 2017 1 10 0 0 0 0) :month :year])
       => "2017-01")
 
-(fact
-  ((destringifier "yyyy-MM") "2017-01")
+(fact "Pattern can be recognized from string."
+      (time-string-pattern "2017-02-13") => "yyyy-MM-dd"
+      (time-string-pattern "2017-02") => "yyyy-MM"
+      (time-string-pattern "2017-02-13T18:09") => "yyyy-MM-dd'T'HH:mm")
+
+(fact "Parsing can be constrained to a specific pattern or left open."
+  ((partial destringify "yyyy-MM") "2017-01")
   => [(DateTime. 2017 1 1 0 0 0 0) :month :year]
-  ((destringifier "yyyy-MM-dd") "2017-01-10")
+  ((partial destringify "yyyy-MM-dd") "2017-01-10")
+  => [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
+  (destringify "2017-01")
+  => [(DateTime. 2017 1 1 0 0 0 0) :month :year]
+  (destringify "2017-01-10")
   => [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
 
 
@@ -120,3 +149,4 @@
       (same-time? [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
                   [(DateTime. 2017 1 10 0 0 0 0) :month :year])
       => false)
+
