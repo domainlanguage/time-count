@@ -73,7 +73,7 @@
 
        (fact "The composition can be a meaningful operation."
              (let [last-day-of-month (t-> (enclosing :month) (nested-last :day))]
-               (last-day-of-month "2017-02-13") => "2017-02-28")))
+               (last-day-of-month "2017-02-13")) => "2017-02-28"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Allen's Interval Algebra  ;;;
@@ -100,3 +100,15 @@
              (relation "2016-12" "2017") => :meets
              (relation "2016-11" "2017") => :before
              (relation "2017-W01" "2017") => :during))
+
+(fact "example: is the invoice due"
+      (let [net-30 (t-> interval-seq #(nth % 30))
+            net-30-EOM (t-> (enclosing :month) next-interval (nested-last :day))
+            overdue? (fn [terms completion-date today] (#{:after :met-by} (relation today (terms completion-date))))]
+
+        (net-30 "2017-01-15") => "2017-02-14"
+        (net-30-EOM "2017-01-15") => "2017-02-28"
+        (overdue? net-30 "2017-01-15" "2017-02-10") => falsey
+        (overdue? net-30 "2017-01-15" "2017-02-20" ) => truthy
+        (overdue? net-30-EOM "2017-01-15" "2017-02-20" ) => falsey
+        (overdue? net-30-EOM "2017-01-15" "2017-03-01") => truthy))
