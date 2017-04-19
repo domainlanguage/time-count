@@ -1,4 +1,4 @@
-(ns string-time.meta-joda
+(ns time-count.meta-joda
   (:import [org.joda.time DateTime
                           Years Months Weeks Days Hours Minutes Seconds]
            [org.joda.time.format DateTimeFormat])
@@ -13,6 +13,7 @@
     :day (Days/days 1)
     :hour (Hours/hours 1)
     :week (Weeks/weeks 1)
+    :minute (Minutes/minutes 1)
     :no-match))
 
 
@@ -21,7 +22,7 @@
     [:month :year] (fn [^DateTime dt] (.monthOfYear dt))
     [:day :month] (fn [^DateTime dt] (.dayOfMonth dt))
     [:hour :day] (fn [^DateTime dt] (.hourOfDay dt))
-    [:minute :hour] (fn [^DateTime dt] (.hourOfDay dt))
+    [:minute :hour] (fn [^DateTime dt] (.minuteOfHour dt))
     [:day :year] (fn [^DateTime dt] (.dayOfYear dt))
     [:week :week-year] (fn [^DateTime dt] (.weekOfWeekyear dt))
     [:day :week] (fn [^DateTime dt] (.dayOfWeek dt))
@@ -46,7 +47,7 @@
 (def nesting-to-pattern
   (map-invert pattern-to-nesting))
 
-(defn formatter-for-pattern [pattern] (DateTimeFormat/forPattern pattern))
+(defn formatter-for-pattern [pattern] (-> pattern DateTimeFormat/forPattern .withOffsetParsed))
 
 (defn formatter-for-nesting [nesting] (-> nesting nesting-to-pattern formatter-for-pattern))
 
@@ -66,7 +67,7 @@
 (defn destringify
   ([pattern time-string]
     (cons
-      (.parseDateTime (DateTimeFormat/forPattern pattern) time-string)
+      (.parseDateTime (formatter-for-pattern pattern) time-string)
       (pattern-to-nesting pattern)))
   ([time-string]
     (destringify (time-string-pattern time-string) time-string)))
@@ -150,3 +151,6 @@
                   [(DateTime. 2017 1 10 0 0 0 0) :month :year])
       => false)
 
+(future-fact "Daylight savings time"
+             (-> "2016-11-06T01:59" destringify next-interval)
+             => "?")

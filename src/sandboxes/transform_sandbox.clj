@@ -1,4 +1,4 @@
-(ns string-time.transform-sandbox
+(ns sandboxes.transform-sandbox
   (:import [org.joda.time ReadablePartial ReadableDateTime ReadableInstant
                           ReadablePeriod DateTime DateMidnight YearMonth
                           LocalDate LocalTime DateTimeZone Period PeriodType

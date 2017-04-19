@@ -1,4 +1,4 @@
-(ns string-time.parsing-sandbox
+(ns sandboxes.cleanroom-compute-sandbox
   (:require [midje.sweet :refer :all]))
 
 (defn clean-up-increments [{increments :increments :as full-map}]

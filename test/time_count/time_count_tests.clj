@@ -1,6 +1,6 @@
-(ns string-time.step-n-time-tests
-  (:require [string-time.step-n-time :refer :all]
-            [string-time.meta-joda :refer [same-time?]]
+(ns time-count.time-count-tests
+  (:require [time-count.time-count :refer :all]
+            [time-count.meta-joda :refer [same-time?]]
             [midje.sweet :refer :all])
   (:import [org.joda.time DateTime]))
 
@@ -75,40 +75,3 @@
              (let [last-day-of-month (t-> (enclosing :month) (nested-last :day))]
                (last-day-of-month "2017-02-13")) => "2017-02-28"))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;  Allen's Interval Algebra  ;;;
-;;;  Basic relations           ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(facts "about Allen's Interval Algebra"
-       (fact "Thirteen basic relations in Allen's Interval Algebra"
-             (relation "2017" "2017") => :equal
-             (relation "2015" "2017") => :before
-             (relation "2017" "2015") => :after
-             (relation "2016" "2017") => :meets
-             (relation "2017" "2016") => :met-by
-             (relation "2017-01" "2017") => :starts
-             (relation "2017" "2017-01") => :started-by
-             (relation "2017-12" "2017") => :finishes
-             (relation "2017" "2017-12") => :finished-by
-             (relation "2017-02" "2017") => :during
-             (relation "2017" "2017-02") => :contains
-             (relation "2017-W05" "2017-02") => :overlaps
-             (relation "2017-02" "2017-W05") => :overlapped-by)
-
-       (fact "If scales are different."
-             (relation "2016-12" "2017") => :meets
-             (relation "2016-11" "2017") => :before
-             (relation "2017-W01" "2017") => :during))
-
-(fact "example: is the invoice due"
-      (let [net-30 (t-> interval-seq #(nth % 30))
-            net-30-EOM (t-> (enclosing :month) next-interval (nested-last :day))
-            overdue? (fn [terms completion-date today] (#{:after :met-by} (relation today (terms completion-date))))]
-
-        (net-30 "2017-01-15") => "2017-02-14"
-        (net-30-EOM "2017-01-15") => "2017-02-28"
-        (overdue? net-30 "2017-01-15" "2017-02-10") => falsey
-        (overdue? net-30 "2017-01-15" "2017-02-20" ) => truthy
-        (overdue? net-30-EOM "2017-01-15" "2017-02-20" ) => falsey
-        (overdue? net-30-EOM "2017-01-15" "2017-03-01") => truthy))
