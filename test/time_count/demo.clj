@@ -3,9 +3,8 @@
             [time-count.allens-interval-algebra :refer [relation]]
             [time-count.meta-joda :refer [stringify destringify]]
             [midje.sweet :refer :all])
-  (:import [java.util.Date])
-  (:import [org.joda.time DateTime Days Months])
-  )
+  (:import [java.util.Date]
+           [org.joda.time DateTime Days Months]))
 
 
 ;; Time libraries usually view time as a measure
@@ -85,17 +84,22 @@
             => "2017-05")
 
 (fact "Common transformations can be composed from these operations."
-      (let [last-day (t-> (nested-seq :day) last)
-            later (fn [n t] ((t-> interval-seq #(nth % n)) t))]
+      (let [later (fn [n t] ((t-> interval-seq #(nth % n)) t))
+            last-day (t-> (nested-seq :day) last)
+            eom (t-> (enclosing :month) (nested-seq :day) last)]
+
+        (later 5 "2017-04-19") => "2017-04-24"
+        (later 5 "2017") => "2022"
         (last-day "2017-04") => "2017-04-30"
         (last-day "2017") => "2017-365"
       ;  (last-day "2017-04-19") => TODO How to represent stuff like this?
-        (later 5 "2017-04-19") => "2017-04-24"
-        (later 5 "2017") => "2022"))
+        (eom "2017-04-19") => "2017-04-30"
+        (eom "2017-04-19T15:12") => "2017-04-30"))
+        ; A more complex eom could preserve nesting
+        ; and find last interval of same scale, etc.
 
-
-
-(fact "Business rules can be composed. Example: invoice due"
+; Business rules can be composed from these basic operations.
+(fact " Example: invoice due"
       (let [net-30 (t-> interval-seq #(nth % 30))
             net-30-EOM (t-> (enclosing :month) next-interval (nested-last :day))
             overdue? (fn [terms completion-date today] (#{:after :met-by} (relation today (terms completion-date))))]
@@ -116,7 +120,7 @@
 ;; Or days within years or days within weeks.
 ;; In a sequence of months, the scale is month. It doesn't matter that not all are the same length. They are all a month!
 ;; If you nest days (named with numbers) within a month, then some februaries have 28 and some have 29.
-;; String representaton
+;; String representation should be seamless (using ISO 8601 where possible)
 
 
 
