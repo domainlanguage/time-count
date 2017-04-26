@@ -61,13 +61,14 @@
         (next-str "2017-02-28") => "2017-03-01"
         (next-str "2016-02-28") => "2016-02-29"
         (next-str "2017-070") => "2017-071"
-        (next-str "2017-365") => "2018-001"))
+        (next-str "2017-365") => "2018-001"
+        (next-str "2017-W52") => "2018-W01"))
 
 (fact "Intervals can be nested within an interval of a larger scale"
       (-> "2017-04" destringify ((nested-seq :day)) count) => 30
       (-> "2017" destringify ((nested-seq :day)) count) => 365
       (-> "2016" destringify ((nested-seq :day)) count) => 366
-     ; :week-year is still a puzzle (-> "2017" destringify ((nested-seq :week)) count) => 365
+     ; :week-year is still a puzzle (-> "2017" destringify ((nested-seq :week)) count) => 52?
       (-> "2017" destringify ((nested-seq :month)) count) => 12
       (-> "2017" destringify ((nested-seq :month)) first stringify) => "2017-01"
       ((t-> (nested-seq :month) first) "2017") => "2017-01"

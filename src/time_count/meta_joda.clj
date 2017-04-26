@@ -82,7 +82,7 @@
 (defn stringify [[^DateTime date & nesting]]
   (.print (formatter-for-nesting nesting) date))
 
-(fact "In cannonical string, least significant place is unit."
+(fact "In cannonical string, least significant place is scale."
       (stringify [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
       => "2017-01-10"
       (stringify [(DateTime. 2017 1 10 0 0 0 0) :month :year])
@@ -91,7 +91,8 @@
 (fact "Pattern can be recognized from string."
       (time-string-pattern "2017-02-13") => "yyyy-MM-dd"
       (time-string-pattern "2017-02") => "yyyy-MM"
-      (time-string-pattern "2017-02-13T18:09") => "yyyy-MM-dd'T'HH:mm")
+      (time-string-pattern "2017-02-13T18:09") => "yyyy-MM-dd'T'HH:mm"
+      (time-string-pattern "2017-W05-2") => "xxxx-'W'ww-e")
 
 (fact "Parsing can be constrained to a specific pattern or left open."
   ((partial destringify "yyyy-MM") "2017-01")
@@ -150,6 +151,22 @@
       (same-time? [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
                   [(DateTime. 2017 1 10 0 0 0 0) :month :year])
       => false)
+
+(def mapable-nestings
+  [[:day :month :year]
+   [:day :year]
+   [:day :week :week-year]])
+
+(defn to-nesting
+  ;;TODO Validate that both in and out are mapable-nestings
+  ([target-nesting [^DateTime date & nesting]] (cons date target-nesting))
+  ([target-nesting] (partial to-nesting target-nesting)))
+
+
+(facts "about mapping between nesting"
+       (fact ":day :month :year maps to :day :year"
+         (-> "2017-04-25" destringify ((to-nesting [:day :week :week-year])) stringify)
+             => "2017-W17-2"))   
 
 (future-fact "Daylight savings time"
              (-> "2016-11-06T01:59" destringify next-interval)
