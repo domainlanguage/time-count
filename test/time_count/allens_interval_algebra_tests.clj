@@ -1,6 +1,5 @@
 (ns time-count.allens-interval-algebra-tests
   (:require [time-count.allens-interval-algebra :refer :all]
-            [time-count.time-count :refer [next-interval nested-last t-> interval-seq enclosing]]
             [midje.sweet :refer :all]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

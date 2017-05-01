@@ -50,50 +50,53 @@
       (-> "2017-04-09T11:17" destringify rest) => [:minute :hour :day :month :year]
       (-> "2017-04" destringify rest) => [:month :year])
 
+(fact "A convenience function allows application of time transforming functions with ISO 8601 strings."
+      (t-> "2017-04-30" identity) => "2017-04-30")
 
-;;Now, treating all times as intervals has some implications.
+
+;;Treating all times as intervals has some implications.
 (fact "An interval is part of a sequence, so next is meaningful"
-      (let [next-str (t-> next-interval)]
-        (next-str "2017-04-09") => "2017-04-10"
-        (next-str "2017-04") => "2017-05"
-        (next-str "2017") => "2018"
-        (next-str "2017-04-09T11:17") => "2017-04-09T11:18"
-        (next-str "2017-02-28") => "2017-03-01"
-        (next-str "2016-02-28") => "2016-02-29"
-        (next-str "2017-070") => "2017-071"
-        (next-str "2017-365") => "2018-001"
-        (next-str "2017-W52") => "2018-W01"))
+        (t-> "2017-04-09" next-interval) => "2017-04-10"
+        (t-> "2017-04" next-interval) => "2017-05"
+        (t-> "2017" next-interval) => "2018"
+        (t-> "2017-04-09T11:17" next-interval) => "2017-04-09T11:18"
+        (t-> "2017-02-28" next-interval) => "2017-03-01"
+        (t-> "2016-02-28" next-interval) => "2016-02-29"
+        (t-> "2017-070" next-interval) => "2017-071"
+        (t-> "2017-365" next-interval) => "2018-001"
+        (t-> "2017-W52" next-interval) => "2018-W01")
 
 (fact "Intervals can be nested within an interval of a larger scale"
       (-> "2017-04" destringify ((nested-seq :day)) count) => 30
       (-> "2017" destringify ((nested-seq :day)) count) => 365
       (-> "2016" destringify ((nested-seq :day)) count) => 366
-     ; :week-year is still a puzzle (-> "2017" destringify ((nested-seq :week)) count) => 52?
+      ; :week-year is still a puzzle (-> "2017" destringify ((nested-seq :week)) count) => 52?
       (-> "2017" destringify ((nested-seq :month)) count) => 12
       (-> "2017" destringify ((nested-seq :month)) first stringify) => "2017-01"
-      ((t-> (nested-seq :month) first) "2017") => "2017-01"
-      ((t-> (nested-seq :month) last) "2017") => "2017-12"
+      (t-> "2017" (nested-seq :month) first) => "2017-01"
+      (t-> "2017" (nested-seq :month) last) => "2017-12"
       )
 
 
 (fact "an interval sequence can be nested within an interval of a higher scale."
-            (-> "2017-04-09" destringify ((enclosing)) stringify)
-            => "2017-04"
-            (-> "2017-04-09" destringify ((enclosing)) next-interval stringify)
-            => "2017-05"
-            ((t-> (enclosing) next-interval) "2017-04-09")
-            => "2017-05")
+            (t-> "2017-04-09" (enclosing)) => "2017-04")
 
-(fact "Common transformations can be composed from these operations."
-      (let [later (fn [n t] ((t-> interval-seq #(nth % n)) t))
-            last-day (t-> (nested-seq :day) last)
-            eom (t-> (enclosing :month) (nested-seq :day) last)]
+(fact "These operations can be composed"
+      (t-> "2017-04-09" (enclosing) next-interval) => "2017-05"
+
+      (let [up-next (tf-> (enclosing) next-interval)]
+        (up-next "2017-04-09") => "2017-05"))
+
+
+(fact "Higher-level time operations can be composed from these."
+      (let [later (fn [n t] ((tf-> interval-seq #(nth % n)) t))
+            last-day (tf-> (nested-seq :day) last)
+            eom (tf-> (enclosing :month) (nested-seq :day) last)]
 
         (later 5 "2017-04-19") => "2017-04-24"
         (later 5 "2017") => "2022"
         (last-day "2017-04") => "2017-04-30"
         (last-day "2017") => "2017-365"
-      ;  (last-day "2017-04-19") => TODO How to represent stuff like this?
         (eom "2017-04-19") => "2017-04-30"
         (eom "2017-04-19T15:12") => "2017-04-30"))
         ; A more complex eom could preserve nesting
@@ -101,8 +104,8 @@
 
 ; Business rules can be composed from these basic operations.
 (fact " Example: invoice due"
-      (let [net-30 (t-> interval-seq #(nth % 30))
-            net-30-EOM (t-> (enclosing :month) next-interval (nested-last :day))
+      (let [net-30 (tf-> interval-seq #(nth % 30))
+            net-30-EOM (tf-> (enclosing :month) next-interval (nested-last :day))
             overdue? (fn [terms completion-date today] (#{:after :met-by} (relation today (terms completion-date))))]
 
         (net-30 "2017-01-15") => "2017-02-14"

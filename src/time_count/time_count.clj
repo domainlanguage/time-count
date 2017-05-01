@@ -57,11 +57,13 @@
 ;;; composition of transformations and destring/stringify ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn t-> [& meta-joda-fns]
+(defn tf-> [& meta-joda-fns]
   (fn [time-string]
     (-> time-string
         destringify
         ((apply comp (reverse meta-joda-fns)))
         stringify)))
 
+(defn t-> [time-string & meta-joda-fns]
+  (-> time-string ((apply tf-> meta-joda-fns))))
 
