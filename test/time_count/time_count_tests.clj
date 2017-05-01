@@ -38,6 +38,8 @@
        (fact "We can move up the hierarchy of scales."
              ((enclosing) [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
              => [(DateTime. 2017 1 10 0 0 0 0) :month :year]
+
+             (enclosing "2017-01-10" => "2017-01")
              ((enclosing) [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
              => #(same-time? % [(DateTime. 2017 1 1 0 0 0 0) :month :year])
              ((enclosing :year) [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
