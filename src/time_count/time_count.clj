@@ -3,15 +3,15 @@
   (:import [org.joda.time DateTime]))
 
 
-(defn after?
-  "TODO This is too simplistic."
-  [[^DateTime dt1 & nesting1] [^DateTime dt2 & nesting2]]
-  (.isAfter dt1 dt2))
-
 (defn next-interval [[^DateTime dt & nesting]]
   (cons
     (.plus dt (scale-to-Period (first nesting)))
     nesting))
+
+(defn- after?
+  "This is a convenience wrapper, used to create interval bounded sequences."
+  [[^DateTime dt1 & nesting1] [^DateTime dt2 & nesting2]]
+  (.isAfter dt1 dt2))
 
 (defn interval-seq
   ([meta-joda-start]
