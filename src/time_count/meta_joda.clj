@@ -3,7 +3,8 @@
                           Years Months Weeks Days Hours Minutes Seconds]
            [org.joda.time.format DateTimeFormat])
   (:require [midje.sweet :refer :all]
-            [clojure.set :refer [map-invert]]))
+            [clojure.set :refer [map-invert]]
+            [clojure.string :refer [split]]))
 
 
 (defn scale-to-Period [scale]
@@ -80,6 +81,16 @@
 
 (defn stringify [[^DateTime date & nesting]]
   (.print (formatter-for-nesting nesting) date))
+
+(defn iso-interval-to-meta-joda
+  [interval-string]
+  (let [[start end] (split interval-string #"/")]
+                   {:start (destringify start)
+                    :end (destringify end)}))
+
+(defn meta-joda-interval-to-iso
+  [{:keys [start end]}]
+  (str (stringify start) "/" (stringify end)))
 
 
 

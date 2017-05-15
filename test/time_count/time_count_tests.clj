@@ -12,7 +12,6 @@
              (next-interval [(DateTime. 2016 12 31 0 0 0 0) :day :month :year])
              => [(DateTime. 2017 1 1 0 0 0 0) :day :month :year])
 
-
        (fact "We can make a bounded sequence."
              (take 3 (interval-seq [(DateTime. 2016 12 31 0 0 0 0) :day :month :year]))
              => [[(DateTime. 2016 12 31 0 0 0 0) :day :month :year]
@@ -25,7 +24,16 @@
                  [(DateTime. 2017 1 1 0 0 0 0) :day :month :year]
                  [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]])
 
-       (fact "In meta-joda, we ignore any value of scales below those specified."
+       ;; TODO Decide on style of representation of intervals
+       (fact "A time interval is equivalent to a bounded sequence."
+             (interval-seq2 {:start [(DateTime. 2016 12 31 0 0 0 0) :day :month :year] :end [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]})
+             => [[(DateTime. 2016 12 31 0 0 0 0) :day :month :year]
+                 [(DateTime. 2017 1 1 0 0 0 0) :day :month :year]
+                 [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]])
+
+
+
+       (fact "In meta-joda, we ignore any value of scales below those specified (impl detail)."
              (same-time? [(DateTime. 2017 4 30 0 0 0 0) :day :month :year]
                          [(DateTime. 2017 4 30 1 2 3 4) :day :month :year])
              => truthy

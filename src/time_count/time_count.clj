@@ -19,6 +19,10 @@
   ([meta-joda-start meta-joda-end]
    (take-while #(not (after? % meta-joda-end)) (interval-seq meta-joda-start))))
 
+(defn interval-seq2
+  [{:keys [start end]}]
+  (interval-seq start end))
+
 (defn nested-first [scale]
   (fn [[^DateTime dt & nesting]]
     (cons (-> dt ((nesting-fns scale (first nesting))) .withMinimumValue)

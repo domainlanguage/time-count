@@ -27,4 +27,15 @@
       => [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
 
 
-(fact "intervals can be represented as ISO")
+(fact "intervals can be represented as ISO"
+      (iso-interval-to-meta-joda "2017-05-15/2017-05-17")
+      => {:start [(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
+          :end [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]}
+
+      (meta-joda-interval-to-iso {:start [(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
+                                  :end   [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]})
+      => "2017-05-15/2017-05-17")
+
+;;TODO Other valid ISO formats, such as abbreviated second date, or using period
+
+
