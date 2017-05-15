@@ -61,8 +61,7 @@
     (re-matches #"\d\d\d\d-\d\d\d" time-string) "yyyy-DDD"
     (re-matches #"\d\d\d\d-W\d\d" time-string) "xxxx-'W'ww"
     (re-matches #"\d\d\d\d-W\d\d-\d" time-string) "xxxx-'W'ww-e"
-    :else :NONE)
-  )
+    :else :NONE))
 
 (defn destringify
   ([pattern time-string]
@@ -82,27 +81,6 @@
 (defn stringify [[^DateTime date & nesting]]
   (.print (formatter-for-nesting nesting) date))
 
-(fact "In cannonical string, least significant place is scale."
-      (stringify [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
-      => "2017-01-10"
-      (stringify [(DateTime. 2017 1 10 0 0 0 0) :month :year])
-      => "2017-01")
-
-(fact "Pattern can be recognized from string."
-      (time-string-pattern "2017-02-13") => "yyyy-MM-dd"
-      (time-string-pattern "2017-02") => "yyyy-MM"
-      (time-string-pattern "2017-02-13T18:09") => "yyyy-MM-dd'T'HH:mm"
-      (time-string-pattern "2017-W05-2") => "xxxx-'W'ww-e")
-
-(fact "Parsing can be constrained to a specific pattern or left open."
-  ((partial destringify "yyyy-MM") "2017-01")
-  => [(DateTime. 2017 1 1 0 0 0 0) :month :year]
-  ((partial destringify "yyyy-MM-dd") "2017-01-10")
-  => [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
-  (destringify "2017-01")
-  => [(DateTime. 2017 1 1 0 0 0 0) :month :year]
-  (destringify "2017-01-10")
-  => [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
 
 
 ;;;;;;;;;;;;
@@ -123,6 +101,7 @@
       stringify
       ((destringifier-from-scales scales))))
 
+;; TODO Seems like it might be better to be consistent: Either ignore insignificant scales or use this function whenever insignificant scales occur
 (fact "Each scale has a default value -- typically its lowest.
               Ignored scales can be set to these values."
       (default-insignificant-scales [(DateTime. 2017 5 5 5 5 5 5) :day :month :year])
@@ -134,9 +113,10 @@
 
 (defn same-time? [mj1 mj2]
   ;; TODO This seems quite indirect. Is it inefficient?
+  ;; TODO This function is only used in tests, and only because of insignificant scales. Allens "equals" is the real comparison. Somehow get rid of it?
   (= (stringify mj1) (stringify mj2)))
 
-
+;; TODO Same point here about insignificant scales. Ignore them or eliminate them?
 (fact "Nested scales of a named time are explicit.
        The value of any other scale is ignored"
       (same-time? [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
