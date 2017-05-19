@@ -1,7 +1,7 @@
 (ns time-count.demo
   (:require [time-count.time-count :refer :all]
             [time-count.allens-interval-algebra :refer [relation]]
-            [time-count.meta-joda :refer [stringify destringify]]
+            [time-count.meta-joda :refer [stringify destringify place-value to-nesting]]
             [midje.sweet :refer :all])
   (:import [java.util.Date]
            [org.joda.time DateTime Days Months]))
@@ -56,15 +56,15 @@
 
 ;;Treating all times as intervals has some implications.
 (fact "An interval is part of a sequence, so next is meaningful"
-        (t-> "2017-04-09" next-interval) => "2017-04-10"
-        (t-> "2017-04" next-interval) => "2017-05"
-        (t-> "2017" next-interval) => "2018"
-        (t-> "2017-04-09T11:17" next-interval) => "2017-04-09T11:18"
-        (t-> "2017-02-28" next-interval) => "2017-03-01"
-        (t-> "2016-02-28" next-interval) => "2016-02-29"
-        (t-> "2017-070" next-interval) => "2017-071"
-        (t-> "2017-365" next-interval) => "2018-001"
-        (t-> "2017-W52" next-interval) => "2018-W01")
+      (t-> "2017-04-09" next-interval) => "2017-04-10"
+      (t-> "2017-04" next-interval) => "2017-05"
+      (t-> "2017" next-interval) => "2018"
+      (t-> "2017-04-09T11:17" next-interval) => "2017-04-09T11:18"
+      (t-> "2017-02-28" next-interval) => "2017-03-01"
+      (t-> "2016-02-28" next-interval) => "2016-02-29"
+      (t-> "2017-070" next-interval) => "2017-071"
+      (t-> "2017-365" next-interval) => "2018-001"
+      (t-> "2017-W52" next-interval) => "2018-W01")
 
 (fact "Intervals can be nested within an interval of a larger scale"
       (-> "2017-04" destringify ((nested-seq :day)) count) => 30
@@ -79,7 +79,7 @@
 
 
 (fact "an interval sequence can be nested within an interval of a higher scale."
-            (t-> "2017-04-09" (enclosing)) => "2017-04")
+      (t-> "2017-04-09" (enclosing)) => "2017-04")
 
 (fact "These operations can be composed"
       (t-> "2017-04-09" (enclosing) next-interval) => "2017-05"
@@ -99,8 +99,8 @@
         (last-day "2017") => "2017-365"
         (eom "2017-04-19") => "2017-04-30"
         (eom "2017-04-19T15:12") => "2017-04-30"))
-        ; A more complex eom could preserve nesting
-        ; and find last interval of same scale, etc.
+; A more complex eom could preserve nesting
+; and find last interval of same scale, etc.
 
 ; Business rules can be composed from these basic operations.
 (fact " Example: invoice due"
@@ -111,9 +111,38 @@
         (net-30 "2017-01-15") => "2017-02-14"
         (net-30-EOM "2017-01-15") => "2017-02-28"
         (overdue? net-30 "2017-01-15" "2017-02-10T14:30") => falsey
-        (overdue? net-30 "2017-01-15" "2017-02-20" ) => truthy
-        (overdue? net-30-EOM "2017-01-15" "2017-02-20" ) => falsey
+        (overdue? net-30 "2017-01-15" "2017-02-20") => truthy
+        (overdue? net-30-EOM "2017-01-15" "2017-02-20") => falsey
         (overdue? net-30-EOM "2017-01-15" "2017-03-01") => truthy))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Building up functions and then deriving holidays ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn day-of-week [ymd]
+  (-> ymd
+      ((to-nesting [:day :week :week-year]))
+      (#(place-value :day %))))
+
+(defn thursday? [ymd]
+  (= 4 (day-of-week ymd)))
+
+(defn november [year]
+  (-> year
+      ((nested-seq :month))
+      (nth 10)))
+
+(defn thanksgiving-us [year]
+  (-> year
+      november
+      ((nested-seq :day))
+      (#(filter thursday? %))
+      (nth 3)))
+
+(fact "US Thanksgiving is 4th Thursday in November"
+      (t-> "2017" thanksgiving-us) => "2017-11-23"
+      (t-> "2018" thanksgiving-us) => "2018-11-22")
+
 
 ;; All times are intervals (no "Instants")
 ;; Intervals have a scale, which corresponds to "Period"

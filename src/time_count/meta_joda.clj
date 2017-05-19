@@ -18,8 +18,8 @@
     :no-match))
 
 
-(defn nesting-fns [enclosing-scale nested-scale]
-  (case [enclosing-scale nested-scale]
+(defn nesting-fns [& proposed-nesting]
+  (case proposed-nesting
     [:month :year] (fn [^DateTime dt] (.monthOfYear dt))
     [:day :month] (fn [^DateTime dt] (.dayOfMonth dt))
     [:hour :day] (fn [^DateTime dt] (.hourOfDay dt))
@@ -27,6 +27,8 @@
     [:day :year] (fn [^DateTime dt] (.dayOfYear dt))
     [:week :week-year] (fn [^DateTime dt] (.weekOfWeekyear dt))
     [:day :week] (fn [^DateTime dt] (.dayOfWeek dt))
+    [:year] (fn [^DateTime dt] (.year dt))
+    [:week-year] (fn [^DateTime dt] (.weekyear dt))
     :no-match))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -162,3 +164,8 @@
 (future-fact "Daylight savings time"
              (-> "2016-11-06T01:59" destringify next-interval)
              => "?")
+
+(defn place-value [scale [^DateTime date & nesting]]
+  {:pre [(some #{scale} nesting)]}
+  (let [scale-pair (->> nesting (drop-while #(not (= scale %))) (take 2))]
+    (-> date ((apply nesting-fns scale-pair)) .get)))
