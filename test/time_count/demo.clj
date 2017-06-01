@@ -143,6 +143,27 @@
       (t-> "2017" thanksgiving-us) => "2017-11-23"
       (t-> "2018" thanksgiving-us) => "2018-11-22")
 
+;;;;
+
+(defn monday? [ymd]
+  (= 1 (day-of-week ymd)))
+
+(defn may [year]
+  (-> year
+      ((nested-seq :month))
+      (nth 4)))
+
+(defn memorial-day-us [year]
+  (-> year
+      may
+      ((nested-seq :day))
+      (#(filter monday? %))
+      last))
+
+(fact "US Memorial Day is the last Monday in May"
+      (t-> "2017" memorial-day-us) => "2017-05-29"
+      (t-> "2018" memorial-day-us) => "2018-05-28")
+
 
 ;; All times are intervals (no "Instants")
 ;; Intervals have a scale, which corresponds to "Period"
