@@ -8,7 +8,7 @@
 ;;;  Basic relations           ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn allens-mj [[^DateTime dt-a & nesting-a :as a] [^DateTime dt-b & nesting-b :as b]]
+(defn relation-mj [[^DateTime dt-a & nesting-a :as a] [^DateTime dt-b & nesting-b :as b]]
   (let [a-left dt-a
         [a-right] (next-interval a)
         b-left dt-b
@@ -44,7 +44,37 @@
       :else :TBD)
     ))
 
-(defn relation [a b]
-  (allens-mj
+(defn relation-str [a b]
+  (relation-mj
     (destringify a)
     (destringify b)))
+
+(defn relation-bounded
+  "relate two intervals defined by lower and upper bounds,
+  where keys are relations."
+  [{:keys [starts-a ends-a meets-a met-by-a]}
+   {:keys [starts-b ends-b meets-b met-by-b]}]
+  :unimplemented
+  ; TODO Study more of Allen's algebra
+  )
+
+(defn consistent-starts-ends?
+  "This implementation works only for one case,
+  where the :starts and :ends are used.
+
+  In Allen's algebra, we can compose relations:
+  a(r)x, x(s)b => a(r.s)b
+  Using one or both of {:starts a :ends b} defines an interval x,
+  which is the same as saying: a(starts)x, x(ended-by)b
+  Now switching to notation from https://www.ics.uci.edu/~alspaugh/cls/shr/allen.html
+  a(s)x, x(E)b and using the composition table in that article,
+  (s).(E) => (pmo)
+  So, the two relations that define x are consistent if a(pmo)b
+  Switching back to the words used in this module, where p = :before, m = :meets, o = :overlaps,
+  The relation of a and b must be in the set #{:before :meets :overlaps}.
+
+  If there are fewer than two specified relations, no conflict is possible."
+
+  [{:keys [starts ends] :as interval-bounds}]
+  (or (-> interval-bounds keys count (< 2))
+      (#{:before :meets :overlaps} (relation-mj starts ends))))

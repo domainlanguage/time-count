@@ -1,6 +1,6 @@
 (ns time-count.demo
   (:require [time-count.time-count :refer :all]
-            [time-count.allens-interval-algebra :refer [relation]]
+            [time-count.allens-interval-algebra :refer [relation-str]]
             [time-count.meta-joda :refer [stringify destringify place-value to-nesting]]
             [midje.sweet :refer :all])
   (:import [java.util.Date]
@@ -106,7 +106,7 @@
 (fact " Example: invoice due"
       (let [net-30 (tf-> interval-seq #(nth % 30))
             net-30-EOM (tf-> (enclosing :month) next-interval (nested-last :day))
-            overdue? (fn [terms completion-date today] (#{:after :met-by} (relation today (terms completion-date))))]
+            overdue? (fn [terms completion-date today] (#{:after :met-by} (relation-str today (terms completion-date))))]
 
         (net-30 "2017-01-15") => "2017-02-14"
         (net-30-EOM "2017-01-15") => "2017-02-28"

@@ -36,6 +36,8 @@
                                   :end   [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]})
       => "2017-05-15/2017-05-17")
 
+
+
 ;;TODO Other valid ISO formats, such as abbreviated second date, or using period
 
 
