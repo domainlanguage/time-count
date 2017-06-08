@@ -94,9 +94,9 @@
 
 (facts "Examples of composing time transformations and stringifiers"
        (fact (t-> "2017-02-13" identity) => "2017-02-13")
-       ; (fact (t-> "2017-02-13" ((enclosing :month))) => "2017-02")
+       (fact (t-> "2017-02-13" (enclosing :month)) => "2017-02")
 
-       (fact "The composition can be a meaningful operation."
-             (let [last-day-of-month (tf-> (enclosing :month) (nested-last :day))]
-               (last-day-of-month "2017-02-13")) => "2017-02-28"))
+       (fact "The composition can be a meaningful, higher-level operation."
+             (let [last-day-of-month (comp (nested-last :day) (enclosing :month))]
+               (t-> "2017-02-13"  last-day-of-month)) => "2017-02-28"))
 
