@@ -34,7 +34,7 @@
       (consistent-starts-ends? {:ends (destringify "2017")}) => truthy)
 
 
-(fact "Relations between two bounded intervals can be inferred."
+(future-fact "Relations between two bounded intervals can be inferred."
       (relation-bounded {:starts (destringify "2016")
                          :ends (destringify "2017")}
                         {:starts (destringify "2019")
