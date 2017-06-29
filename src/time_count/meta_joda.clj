@@ -6,6 +6,10 @@
             [clojure.set :refer [map-invert]]
             [clojure.string :refer [split]]))
 
+(defn mj-time? [x]
+  (and (sequential? x)
+     (let [[^DateTime date & nesting] x]
+          (and (-> date type (= DateTime)) (not-empty nesting)))))
 
 (defn scale-to-Period [scale]
   (case scale

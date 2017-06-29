@@ -1,7 +1,7 @@
 (ns time-count.allens-interval-algebra
   (:import [org.joda.time DateTime])
   (:require [time-count.time-count :refer [next-interval]])
-  (:require [time-count.meta-joda :refer [destringify]]))
+  (:require [time-count.meta-joda :refer [mj-time? destringify]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Allen's Interval Algebra  ;;;
@@ -39,8 +39,6 @@
            (.isBefore b-right a-right)
            (.isAfter b-right a-left)) :overlapped-by
 
-
-
       :else :TBD)
     ))
 
@@ -49,13 +47,73 @@
     (destringify a)
     (destringify b)))
 
+(defn starts-to-dt-left [an-interval]
+  (if (mj-time? an-interval)
+    (first an-interval)
+    (recur (:starts an-interval))))
+
+(defn ends-to-dt-right [an-interval]
+  (if (mj-time? an-interval)
+    (-> an-interval next-interval first)
+    (recur (:ends an-interval))))
+
+(defn to-dt-left-right [an-interval]
+  {:dt-left (starts-to-dt-left an-interval)
+   :dt-right (ends-to-dt-right an-interval)})
+
+
+(defn- relation-dts [a-left a-right b-left b-right]
+    (cond
+      (and (.isEqual a-left b-left)
+           (.isEqual a-right b-right)) :equal
+      (.isBefore a-right b-left) :before
+      (.isAfter a-left b-right) :after
+      (.isEqual a-right b-left) :meets
+      (.isEqual b-right a-left) :met-by
+      (and (.isEqual a-left b-left)
+           (.isBefore a-right b-right)) :starts
+      (and (.isEqual a-left b-left)
+           (.isAfter a-right b-right)) :started-by
+      (and (.isEqual a-right b-right)
+           (.isAfter a-left b-left)) :finishes
+      (and (.isEqual a-right b-right)
+           (.isBefore a-left b-left)) :finished-by
+      (and (.isAfter a-left b-left)
+           (.isBefore a-right b-right)) :during
+      (and (.isBefore a-left b-left)
+           (.isAfter a-right b-right)) :contains
+      (and (.isBefore a-left b-left)
+           (.isBefore a-right b-right)
+           (.isAfter a-right b-left)) :overlaps
+      (and (.isBefore b-left a-left)
+           (.isBefore b-right a-right)
+           (.isAfter b-right a-left)) :overlapped-by
+
+      :else :TBD)
+    )
+
+(defn relation-gen [a b]
+              (let [{a-left :dt-left a-right :dt-right} (to-dt-left-right a)
+                    {b-left :dt-left b-right :dt-right} (to-dt-left-right b)]
+                (relation-dts a-left a-right b-left b-right)))
+
+(defn relation-gen-str [a b]
+  (relation-gen
+    (destringify a)
+    (destringify b)))
+
 (defn relation-bounded
   "relate two intervals defined by lower and upper bounds,
-  where keys are relations."
-  [{:keys [starts-a ends-a meets-a met-by-a]}
-   {:keys [starts-b ends-b meets-b met-by-b]}]
+  where keys are relations :starts and :ends.
+  For now, the bounds must be mj-times."
+  ; TODO Preconditions, :starts :ends keys, and consistent
+  [{starts-a :starts ends-a :ends}
+   {starts-b :starts ends-b :ends}]
+
   :unimplemented
-  ; TODO Study more of Allen's algebra
+  ; I've worked out how to do it with Allen's algebra (for this subset of relations)
+  ; however, this more ad-hoc method works for these cases, and is easier to implement
+  (let [])
   )
 
 (defn consistent-starts-ends?
