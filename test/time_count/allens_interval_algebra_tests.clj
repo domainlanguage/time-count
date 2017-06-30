@@ -1,7 +1,7 @@
 (ns time-count.allens-interval-algebra-tests
   (:require [time-count.allens-interval-algebra :refer :all]
             [midje.sweet :refer :all]
-            [time-count.meta-joda :refer [destringify]]))
+            [time-count.meta-joda :refer [iso-to-mj]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Allen's Interval Algebra  ;;;
@@ -52,12 +52,12 @@
              (relation-gen-str "2017-W01" "2017") => :during))
 
 (fact
-  (relation-gen {:starts (destringify "2017") :ends (destringify "2018")}
-                {:starts (destringify "2020") :ends (destringify "2021")}) => :before
-  (relation-gen {:starts (destringify "2017") :ends (destringify "2020")}
-                {:starts (destringify "2019") :ends (destringify "2021")}) => :overlaps
-  (relation-gen (destringify "2017")
-                {:starts (destringify "2020") :ends (destringify "2021")}) => :before)
+  (relation-gen {:starts (iso-to-mj "2017") :finishes (iso-to-mj "2018")}
+                {:starts (iso-to-mj "2020") :finishes (iso-to-mj "2021")}) => :before
+  (relation-gen {:starts (iso-to-mj "2017") :finishes (iso-to-mj "2020")}
+                {:starts (iso-to-mj "2019") :finishes (iso-to-mj "2021")}) => :overlaps
+  (relation-gen (iso-to-mj "2017")
+                {:starts (iso-to-mj "2020") :finishes (iso-to-mj "2021")}) => :before)
 
 
 (fact "example: invoice due date"
@@ -70,6 +70,6 @@
 
 
 (fact "These functions should be private, but they need testing :-("
-      (starts-to-dt-left (destringify "2017-02")) => (-> "2017-02" destringify first)
-      (starts-to-dt-left {:starts (destringify "2017-02")}) => (-> "2017-02" destringify first)
+      (starts-to-dt-left (iso-to-mj "2017-02")) => (-> "2017-02" iso-to-mj first)
+      (starts-to-dt-left {:starts (iso-to-mj "2017-02")}) => (-> "2017-02" iso-to-mj first)
       )

@@ -5,9 +5,9 @@
 
 
 (fact "In cannonical string, least significant place is scale."
-      (stringify [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
+      (mj-to-iso [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
       => "2017-01-10"
-      (stringify [(DateTime. 2017 1 10 0 0 0 0) :month :year])
+      (mj-to-iso [(DateTime. 2017 1 10 0 0 0 0) :month :year])
       => "2017-01")
 
 (fact "Pattern can be recognized from string."
@@ -17,24 +17,32 @@
       (time-string-pattern "2017-W05-2") => "xxxx-'W'ww-e")
 
 (fact "Parsing can be constrained to a specific pattern or left open."
-      ((partial destringify "yyyy-MM") "2017-01")
+      ((partial iso-to-mj "yyyy-MM") "2017-01")
       => [(DateTime. 2017 1 1 0 0 0 0) :month :year]
-      ((partial destringify "yyyy-MM-dd") "2017-01-10")
+      ((partial iso-to-mj "yyyy-MM-dd") "2017-01-10")
       => [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
-      (destringify "2017-01")
+      (iso-to-mj "2017-01")
       => [(DateTime. 2017 1 1 0 0 0 0) :month :year]
-      (destringify "2017-01-10")
+      (iso-to-mj "2017-01-10")
       => [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
 
+(fact "Relation bounded intervals can be represented as ISO"
+      (iso-to-relation-bounded-interval "2017-05-15/2017-05-17")
+      => {:starts   [(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
+          :finishes [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]}
 
-(fact "intervals can be represented as ISO"
-      (iso-interval-to-meta-joda "2017-05-15/2017-05-17")
-      => {:start [(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
-          :end [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]}
-
-      (meta-joda-interval-to-iso {:start [(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
-                                  :end   [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]})
+      (relation-bounded-interval-to-iso {:starts   [(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
+                                         :finishes [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]})
       => "2017-05-15/2017-05-17")
+
+(fact "Parsing can infer common date-time or interval formats."
+      (from-iso "2017-05-15")
+      => [(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
+      (from-iso "2017-05-15/2017-05-17")
+      => {:starts   [(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
+          :finishes [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]})
+
+
 
 
 

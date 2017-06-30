@@ -8,8 +8,8 @@
 
 (defn mj-time? [x]
   (and (sequential? x)
-     (let [[^DateTime date & nesting] x]
-          (and (-> date type (= DateTime)) (not-empty nesting)))))
+       (let [[^DateTime date & nesting] x]
+         (and (-> date type (= DateTime)) (not-empty nesting)))))
 
 (defn scale-to-Period [scale]
   (case scale
@@ -47,9 +47,9 @@
    "yyyy-MM-dd'T'HH"    [:hour :day :month :year]
    "yyyy-MM-dd'T'HH:mm" [:minute :hour :day :month :year]
    "yyyy-DDD"           [:day :year]
-   "xxxx" [:week-year]
-   "xxxx-'W'ww" [:week :week-year]
-   "xxxx-'W'ww-e" [:day :week :week-year]})
+   "xxxx"               [:week-year]
+   "xxxx-'W'ww"         [:week :week-year]
+   "xxxx-'W'ww-e"       [:day :week :week-year]})
 
 (def nesting-to-pattern
   (map-invert pattern-to-nesting))
@@ -70,13 +70,13 @@
     (re-matches #"\d\d\d\d-W\d\d-\d" time-string) "xxxx-'W'ww-e"
     :else :NONE))
 
-(defn destringify
+(defn iso-to-mj
   ([pattern time-string]
-    (cons
-      (.parseDateTime (formatter-for-pattern pattern) time-string)
-      (pattern-to-nesting pattern)))
+   (cons
+     (.parseDateTime (formatter-for-pattern pattern) time-string)
+     (pattern-to-nesting pattern)))
   ([time-string]
-    (destringify (time-string-pattern time-string) time-string)))
+   (iso-to-mj (time-string-pattern time-string) time-string)))
 
 
 (defn destringifier-from-scales [nesting]
@@ -85,18 +85,29 @@
       (.parseDateTime (formatter-for-nesting nesting) time-string)
       nesting)))
 
-(defn stringify [[^DateTime date & nesting]]
+(defn mj-to-iso [[^DateTime date & nesting]]
   (.print (formatter-for-nesting nesting) date))
 
-(defn iso-interval-to-meta-joda
+(defn iso-to-relation-bounded-interval
   [interval-string]
-  (let [[start end] (split interval-string #"/")]
-                   {:start (destringify start)
-                    :end (destringify end)}))
+  (let [[iso-starts iso-finishes] (split interval-string #"/")]
+    {:starts   (iso-to-mj iso-starts)
+     :finishes (iso-to-mj iso-finishes)}))
 
-(defn meta-joda-interval-to-iso
-  [{:keys [start end]}]
-  (str (stringify start) "/" (stringify end)))
+(defn relation-bounded-interval-to-iso
+  [{:keys [starts finishes]}]
+  (str (mj-to-iso starts) "/" (mj-to-iso finishes)))
+
+(defn from-iso [iso-string]
+  (if (clojure.string/includes? iso-string "/")
+    (iso-to-relation-bounded-interval iso-string)
+    (iso-to-mj iso-string)))
+
+(defn to-iso [interval]
+  (if (mj-time? interval)
+    (mj-to-iso interval)
+    (relation-bounded-interval-to-iso interval)))
+
 
 
 
@@ -115,7 +126,7 @@
   [[_ & scales :as t]]
   ;TODO This is awfully indirect! Probably slow. Easy, for getting started.
   (-> t
-      stringify
+      mj-to-iso
       ((destringifier-from-scales scales))))
 
 ;; TODO Seems like it might be better to be consistent: Either ignore insignificant scales or use this function whenever insignificant scales occur
@@ -131,7 +142,7 @@
 (defn same-time? [mj1 mj2]
   ;; TODO This seems quite indirect. Is it inefficient?
   ;; TODO This function is only used in tests, and only because of insignificant scales. Allens "equals" is the real comparison. Somehow get rid of it?
-  (= (stringify mj1) (stringify mj2)))
+  (= (mj-to-iso mj1) (mj-to-iso mj2)))
 
 ;; TODO Same point here about insignificant scales. Ignore them or eliminate them?
 (fact "Nested scales of a named time are explicit.
@@ -162,11 +173,11 @@
 
 (facts "about mapping between nesting"
        (fact ":day :month :year maps to :day :year"
-         (-> "2017-04-25" destringify ((to-nesting [:day :week :week-year])) stringify)
-             => "2017-W17-2"))   
+             (-> "2017-04-25" iso-to-mj ((to-nesting [:day :week :week-year])) mj-to-iso)
+             => "2017-W17-2"))
 
 (future-fact "Daylight savings time"
-             (-> "2016-11-06T01:59" destringify next-interval)
+             (-> "2016-11-06T01:59" iso-to-mj next-interval)
              => "?")
 
 (defn place-value [scale [^DateTime date & nesting]]

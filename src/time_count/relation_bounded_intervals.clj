@@ -10,10 +10,10 @@
 
 (defn flatten-ends [interval]
   (if (or (mj-time? interval)
-          (not (contains? interval :ends))
-          (mj-time? (interval :ends)))
+          (not (contains? interval :finishes))
+          (mj-time? (interval :finishes)))
     interval
-    (recur (assoc interval :ends (-> interval :ends :ends)))))
+    (recur (assoc interval :finishes (-> interval :finishes :finishes)))))
 
 
 (defn flatten-bounds

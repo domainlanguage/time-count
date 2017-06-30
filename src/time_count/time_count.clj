@@ -8,20 +8,21 @@
     (.plus dt (scale-to-Period (first nesting)))
     nesting))
 
-(defn- after?
-  "This is a convenience wrapper, used to create interval bounded sequences."
+(defn- joda-after?
+  "This is a convenience wrapper, used to create interval bounded sequences.
+  After, in this method, is used in the sense of JodaTime, and NOT Allen's relation."
   [[^DateTime dt1 & nesting1] [^DateTime dt2 & nesting2]]
   (.isAfter dt1 dt2))
 
 (defn interval-seq
-  ([meta-joda-start]
-   (iterate next-interval meta-joda-start))
-  ([meta-joda-start meta-joda-end]
-   (take-while #(not (after? % meta-joda-end)) (interval-seq meta-joda-start))))
+  ([meta-joda-starts]
+   (iterate next-interval meta-joda-starts))
+  ([meta-joda-starts meta-joda-finishes]
+   (take-while #(not (joda-after? % meta-joda-finishes)) (interval-seq meta-joda-starts))))
 
 (defn interval-seq2
-  [{:keys [start end]}]
-  (interval-seq start end))
+  [{:keys [starts finishes]}]
+  (interval-seq starts finishes))
 
 (defn nested-first [scale]
   (fn [[^DateTime dt & nesting]]
@@ -70,7 +71,7 @@
 
 (defn t-> [time-string & meta-joda-fns]
   (-> time-string
-      destringify
+      iso-to-mj
       ((apply comp (reverse meta-joda-fns)))
-      stringify))
+      mj-to-iso))
 

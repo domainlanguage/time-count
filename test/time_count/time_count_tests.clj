@@ -26,7 +26,7 @@
 
        ;; TODO Decide on style of representation of intervals
        (fact "A time interval is equivalent to a bounded sequence."
-             (interval-seq2 {:start [(DateTime. 2016 12 31 0 0 0 0) :day :month :year] :end [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]})
+             (interval-seq2 {:starts [(DateTime. 2016 12 31 0 0 0 0) :day :month :year] :finishes [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]})
              => [[(DateTime. 2016 12 31 0 0 0 0) :day :month :year]
                  [(DateTime. 2017 1 1 0 0 0 0) :day :month :year]
                  [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]])

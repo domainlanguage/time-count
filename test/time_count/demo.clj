@@ -1,7 +1,7 @@
 (ns time-count.demo
   (:require [time-count.time-count :refer :all]
             [time-count.allens-interval-algebra :refer [relation-str]]
-            [time-count.meta-joda :refer [stringify destringify place-value to-nesting]]
+            [time-count.meta-joda :refer [iso-to-mj mj-to-iso place-value to-nesting]]
             [midje.sweet :refer :all])
   (:import [java.util.Date]
            [org.joda.time DateTime Days Months]))
@@ -46,9 +46,9 @@
 ;; Also, having string representations o
 
 (fact "Time representation needs metadata representing nested scale"
-      (-> "2017-04-09" destringify) => [(DateTime. 2017 4 9 0 0 0 0) :day :month :year]
-      (-> "2017-04-09T11:17" destringify rest) => [:minute :hour :day :month :year]
-      (-> "2017-04" destringify rest) => [:month :year])
+      (-> "2017-04-09" iso-to-mj) => [(DateTime. 2017 4 9 0 0 0 0) :day :month :year]
+      (-> "2017-04-09T11:17" iso-to-mj rest) => [:minute :hour :day :month :year]
+      (-> "2017-04" iso-to-mj rest) => [:month :year])
 
 (fact "A convenience function allows application of time transforming functions with ISO 8601 strings."
       ;; This may be mostly for tests and demos. Perhaps it will be used in some apps.
@@ -69,13 +69,13 @@
 
 
 (fact "Intervals can be nested within an interval of a larger scale"
-      (-> "2017-04" destringify ((nested-seq :day)) count) => 30
-;; TODO t-> should handle cases where result is not a mj-time
-      (-> "2017" destringify ((nested-seq :day)) count) => 365
-      (-> "2016" destringify ((nested-seq :day)) count) => 366
+      (-> "2017-04" iso-to-mj ((nested-seq :day)) count) => 30
+      ;; TODO t-> should handle cases where result is not a mj-time
+      (-> "2017" iso-to-mj ((nested-seq :day)) count) => 365
+      (-> "2016" iso-to-mj ((nested-seq :day)) count) => 366
       ; :week-year is still a puzzle (-> "2017" destringify ((nested-seq :week)) count) => 52?
-      (-> "2017" destringify ((nested-seq :month)) count) => 12
-      (-> "2017" destringify ((nested-seq :month)) first stringify) => "2017-01"
+      (-> "2017" iso-to-mj ((nested-seq :month)) count) => 12
+      (-> "2017" iso-to-mj ((nested-seq :month)) first mj-to-iso) => "2017-01"
       (t-> "2017" (nested-seq :month) first) => "2017-01"
       (t-> "2017" (nested-seq :month) last) => "2017-12"
       )

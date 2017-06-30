@@ -1,7 +1,7 @@
 (ns time-count.allens-interval-algebra
   (:import [org.joda.time DateTime])
   (:require [time-count.time-count :refer [next-interval]])
-  (:require [time-count.meta-joda :refer [mj-time? destringify]]))
+  (:require [time-count.meta-joda :refer [mj-time? iso-to-mj]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Allen's Interval Algebra  ;;;
@@ -44,8 +44,8 @@
 
 (defn relation-str [a b]
   (relation-mj
-    (destringify a)
-    (destringify b)))
+    (iso-to-mj a)
+    (iso-to-mj b)))
 
 (defn starts-to-dt-left [an-interval]
   (if (mj-time? an-interval)
@@ -55,7 +55,7 @@
 (defn ends-to-dt-right [an-interval]
   (if (mj-time? an-interval)
     (-> an-interval next-interval first)
-    (recur (:ends an-interval))))
+    (recur (:finishes an-interval))))
 
 (defn to-dt-left-right [an-interval]
   {:dt-left (starts-to-dt-left an-interval)
@@ -99,30 +99,17 @@
 
 (defn relation-gen-str [a b]
   (relation-gen
-    (destringify a)
-    (destringify b)))
+    (iso-to-mj a)
+    (iso-to-mj b)))
 
-(defn relation-bounded
-  "relate two intervals defined by lower and upper bounds,
-  where keys are relations :starts and :ends.
-  For now, the bounds must be mj-times."
-  ; TODO Preconditions, :starts :ends keys, and consistent
-  [{starts-a :starts ends-a :ends}
-   {starts-b :starts ends-b :ends}]
 
-  :unimplemented
-  ; I've worked out how to do it with Allen's algebra (for this subset of relations)
-  ; however, this more ad-hoc method works for these cases, and is easier to implement
-  (let [])
-  )
-
-(defn consistent-starts-ends?
+(defn consistent-starts-finishes?
   "This implementation works only for one case,
-  where the :starts and :ends are used.
+  where the :starts and :finishes are used.
 
   In Allen's algebra, we can compose relations:
   a(r)x, x(s)b => a(r.s)b
-  Using one or both of {:starts a :ends b} defines an interval x,
+  Using one or both of {:starts a :finishes b} defines an interval x,
   which is the same as saying: a(starts)x, x(ended-by)b
   Now switching to notation from https://www.ics.uci.edu/~alspaugh/cls/shr/allen.html
   a(s)x, x(E)b and using the composition table in that article,
@@ -133,6 +120,6 @@
 
   If there are fewer than two specified relations, no conflict is possible."
 
-  [{:keys [starts ends] :as interval-bounds}]
+  [{:keys [starts finishes] :as interval-bounds}]
   (or (-> interval-bounds keys count (< 2))
-      (#{:before :meets :overlaps} (relation-mj starts ends))))
+      (#{:before :meets :overlaps} (relation-mj starts finishes))))
