@@ -1,5 +1,5 @@
 (ns time-count.stringifying-tests
-  (:require [time-count.meta-joda :refer :all]
+  (:require [time-count.iso-8601 :refer :all]
             [midje.sweet :refer :all])
   (:import [org.joda.time DateTime]))
 
@@ -41,6 +41,15 @@
       (from-iso "2017-05-15/2017-05-17")
       => {:starts   [(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
           :finishes [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]})
+
+(future-fact "Sequences can be converted both ways"
+             (to-iso [[(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
+                      [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]])
+             => ["2017-05-15" "2015-05-17"]
+
+             (from-iso ["2017-05-15" "2015-05-17"])
+             => [[(DateTime. 2017 5 15 0 0 0 0) :day :month :year]
+                 [(DateTime. 2017 5 17 0 0 0 0) :day :month :year]])
 
 
 

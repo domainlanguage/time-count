@@ -1,7 +1,8 @@
 (ns time-count.demo
   (:require [time-count.time-count :refer :all]
+            [time-count.iso-8601 :refer :all]
             [time-count.allens-interval-algebra :refer [relation-str]]
-            [time-count.meta-joda :refer [iso-to-mj mj-to-iso place-value to-nesting]]
+            [time-count.meta-joda :refer [place-value to-nesting]]
             [midje.sweet :refer :all])
   (:import [java.util.Date]
            [org.joda.time DateTime Days Months]))

@@ -58,20 +58,3 @@
   ([] enclosing-interval)
   ([scale] (partial enclosing-interval scale)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; composition of transformations and destring/stringify ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;(defn tf-> [& meta-joda-fns]
-;  (fn [time-string]
-;    (-> time-string
-;        destringify
-;        ((apply comp (reverse meta-joda-fns)))
-;        stringify)))
-
-(defn t-> [time-string & meta-joda-fns]
-  (-> time-string
-      iso-to-mj
-      ((apply comp (reverse meta-joda-fns)))
-      mj-to-iso))
-

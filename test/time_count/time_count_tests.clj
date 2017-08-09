@@ -1,6 +1,7 @@
 (ns time-count.time-count-tests
   (:require [time-count.time-count :refer :all]
-            [time-count.meta-joda :refer [same-time?]]
+            [time-count.meta-joda :refer :all]
+            [time-count.iso-8601 :refer :all]
             [midje.sweet :refer :all])
   (:import [org.joda.time DateTime]))
 
@@ -92,6 +93,30 @@
                  count)
              => 28))
 
+(fact "Nested scales of a named time are explicit.
+       The value of any other scale is ignored"
+      (same-time? [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
+                  [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
+      => true
+      (same-time? [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
+                  [(DateTime. 2017 1 11 0 0 0 0) :day :month :year])
+      => false
+      (same-time? [(DateTime. 2017 1 10 0 0 0 0) :month :year]
+                  [(DateTime. 2017 1 11 0 0 0 0) :month :year])
+      => true
+      (same-time? [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
+                  [(DateTime. 2017 1 10 0 0 0 0) :month :year])
+      => false)
+
+(facts "about place values"
+       (fact "Each scale has a place value"
+             (place-value :month [(DateTime. 2017 2 28 0 0 0 0) :day :month :year])
+             => 2)
+       (fact "The time value could be represented as a map of place-values"
+             (place-values [(DateTime. 2017 2 28 0 0 0 0) :day :month :year])
+             => [:day 28 :month 2 :year 2017]))
+
+
 (facts "Examples of composing time transformations and stringifiers"
        (fact (t-> "2017-02-13" identity) => "2017-02-13")
        (fact (t-> "2017-02-13" (enclosing :month)) => "2017-02")
@@ -100,3 +125,11 @@
              (let [last-day-of-month (comp (nested-last :day) (enclosing :month))]
                (t-> "2017-02-13"  last-day-of-month)) => "2017-02-28"))
 
+(facts "about mapping between nesting"
+       (fact ":day :month :year maps to :day :year"
+             (-> "2017-04-25" iso-to-mj ((to-nesting [:day :week :week-year])) mj-to-iso)
+             => "2017-W17-2"))
+
+(future-fact "Daylight savings time"
+             (-> "2016-11-06T01:59" iso-to-mj next-interval)
+             => "?")

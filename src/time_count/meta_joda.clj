@@ -1,10 +1,6 @@
 (ns time-count.meta-joda
   (:import [org.joda.time DateTime
-                          Years Months Weeks Days Hours Minutes Seconds]
-           [org.joda.time.format DateTimeFormat])
-  (:require [midje.sweet :refer :all]
-            [clojure.set :refer [map-invert]]
-            [clojure.string :refer [split]]))
+                          Years Months Weeks Days Hours Minutes Seconds]))
 
 (defn mj-time? [x]
   (and (sequential? x)
@@ -35,130 +31,8 @@
     [:week-year] (fn [^DateTime dt] (.weekyear dt))
     :no-match))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; String representations ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(def pattern-to-nesting
-  {"yyyy"               [:year]
-   "yyyy-MM"            [:month :year]
-   "yyyy-MM-dd"         [:day :month :year]
-   "yyyy-MM-dd'T'HH"    [:hour :day :month :year]
-   "yyyy-MM-dd'T'HH:mm" [:minute :hour :day :month :year]
-   "yyyy-DDD"           [:day :year]
-   "xxxx"               [:week-year]
-   "xxxx-'W'ww"         [:week :week-year]
-   "xxxx-'W'ww-e"       [:day :week :week-year]})
-
-(def nesting-to-pattern
-  (map-invert pattern-to-nesting))
-
-(defn formatter-for-pattern [pattern] (-> pattern DateTimeFormat/forPattern .withOffsetParsed))
-
-(defn formatter-for-nesting [nesting] (-> nesting nesting-to-pattern formatter-for-pattern))
-
-(defn time-string-pattern [time-string]
-  (cond
-    (re-matches #"\d\d\d\d" time-string) "yyyy"
-    (re-matches #"\d\d\d\d-\d\d" time-string) "yyyy-MM"
-    (re-matches #"\d\d\d\d-\d\d-\d\d" time-string) "yyyy-MM-dd"
-    (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d" time-string) "yyyy-MM-dd'T'HH"
-    (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d:\d\d" time-string) "yyyy-MM-dd'T'HH:mm"
-    (re-matches #"\d\d\d\d-\d\d\d" time-string) "yyyy-DDD"
-    (re-matches #"\d\d\d\d-W\d\d" time-string) "xxxx-'W'ww"
-    (re-matches #"\d\d\d\d-W\d\d-\d" time-string) "xxxx-'W'ww-e"
-    :else :NONE))
-
-(defn iso-to-mj
-  ([pattern time-string]
-   (cons
-     (.parseDateTime (formatter-for-pattern pattern) time-string)
-     (pattern-to-nesting pattern)))
-  ([time-string]
-   (iso-to-mj (time-string-pattern time-string) time-string)))
-
-
-(defn destringifier-from-scales [nesting]
-  (fn [time-string]
-    (cons
-      (.parseDateTime (formatter-for-nesting nesting) time-string)
-      nesting)))
-
-(defn mj-to-iso [[^DateTime date & nesting]]
-  (.print (formatter-for-nesting nesting) date))
-
-(defn iso-to-relation-bounded-interval
-  [interval-string]
-  (let [[iso-starts iso-finishes] (split interval-string #"/")]
-    {:starts   (iso-to-mj iso-starts)
-     :finishes (iso-to-mj iso-finishes)}))
-
-(defn relation-bounded-interval-to-iso
-  [{:keys [starts finishes]}]
-  (str (mj-to-iso starts) "/" (mj-to-iso finishes)))
-
-(defn from-iso [iso-string]
-  (if (clojure.string/includes? iso-string "/")
-    (iso-to-relation-bounded-interval iso-string)
-    (iso-to-mj iso-string)))
-
-(defn to-iso [interval]
-  (if (mj-time? interval)
-    (mj-to-iso interval)
-    (relation-bounded-interval-to-iso interval)))
-
-
-
-
-;;;;;;;;;;;;
-;; Basics ;;
-;;;;;;;;;;;;
-
-(defn default-insignificant-scales
-  "JodaDates encode all scales, but often some are ignored.
-  For example, when we want to represent a date without a specific time.
-  meta-Joda makes that explicit. For most operations, the values
-  of insignificant scales (such as hour within a :day :month :year)
-  are simply ignored. Although they *cannot* be removed,
-  in some cases it may be useful to set them to a default.
-  This function does that."
-  [[_ & scales :as t]]
-  ;TODO This is awfully indirect! Probably slow. Easy, for getting started.
-  (-> t
-      mj-to-iso
-      ((destringifier-from-scales scales))))
-
-;; TODO Seems like it might be better to be consistent: Either ignore insignificant scales or use this function whenever insignificant scales occur
-(fact "Each scale has a default value -- typically its lowest.
-              Ignored scales can be set to these values."
-      (default-insignificant-scales [(DateTime. 2017 5 5 5 5 5 5) :day :month :year])
-      => [(DateTime. 2017 5 5 0 0 0 0) :day :month :year]
-      (default-insignificant-scales [(DateTime. 2017 5 5 5 5 5 5) :month :year])
-      => [(DateTime. 2017 5 1 0 0 0 0) :month :year]
-      (default-insignificant-scales [(DateTime. 2017 5 5 5 5 5 5) :minute :hour :day :month :year])
-      => [(DateTime. 2017 5 5 5 5 0 0) :minute :hour :day :month :year])
-
-(defn same-time? [mj1 mj2]
-  ;; TODO This seems quite indirect. Is it inefficient?
-  ;; TODO This function is only used in tests, and only because of insignificant scales. Allens "equals" is the real comparison. Somehow get rid of it?
-  (= (mj-to-iso mj1) (mj-to-iso mj2)))
-
-;; TODO Same point here about insignificant scales. Ignore them or eliminate them?
-(fact "Nested scales of a named time are explicit.
-       The value of any other scale is ignored"
-      (same-time? [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
-                  [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
-      => true
-      (same-time? [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
-                  [(DateTime. 2017 1 11 0 0 0 0) :day :month :year])
-      => false
-      (same-time? [(DateTime. 2017 1 10 0 0 0 0) :month :year]
-                  [(DateTime. 2017 1 11 0 0 0 0) :month :year])
-      => true
-      (same-time? [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
-                  [(DateTime. 2017 1 10 0 0 0 0) :month :year])
-      => false)
 
 (def mapable-nestings
   [[:day :month :year]
@@ -171,16 +45,24 @@
   ([target-nesting] (partial to-nesting target-nesting)))
 
 
-(facts "about mapping between nesting"
-       (fact ":day :month :year maps to :day :year"
-             (-> "2017-04-25" iso-to-mj ((to-nesting [:day :week :week-year])) mj-to-iso)
-             => "2017-W17-2"))
-
-(future-fact "Daylight savings time"
-             (-> "2016-11-06T01:59" iso-to-mj next-interval)
-             => "?")
 
 (defn place-value [scale [^DateTime date & nesting]]
   {:pre [(some #{scale} nesting)]}
   (let [scale-pair (->> nesting (drop-while #(not (= scale %))) (take 2))]
     (-> date ((apply nesting-fns scale-pair)) .get)))
+
+
+(defn place-values [[_ & nesting :as mjt]]
+  "Return a sequential representation, [:scale place-value :scale place-value]"
+  ;TODO This has many unnecessary passes
+  (interleave nesting
+              (map #(place-value % mjt) nesting)))
+
+(defn same-time?
+  "meta-joda times can have non-zero values
+  for scales smaller than those in the nesting,
+  and they are ignored. However, this makes
+  an = comparison to be unreliable.
+  This comparison ignores insignificant scales."
+  [mjt1 mjt2]
+  (= (place-values mjt1) (place-values mjt2)))

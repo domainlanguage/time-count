@@ -1,7 +1,9 @@
 (ns time-count.allens-interval-algebra
   (:import [org.joda.time DateTime])
-  (:require [time-count.time-count :refer [next-interval]])
-  (:require [time-count.meta-joda :refer [mj-time? iso-to-mj]]))
+  (:require [time-count.time-count :refer [next-interval]]
+            [time-count.meta-joda :refer [mj-time?]]
+            [time-count.iso-8601 :refer [iso-to-mj]])) ; TODO This iso dependency seems iffy
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Allen's Interval Algebra  ;;;
