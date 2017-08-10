@@ -27,29 +27,10 @@
        (fact "If scales are different."
              (relation-str "2016-12" "2017") => :meets
              (relation-str "2016-11" "2017") => :before
-             (relation-str "2017-W01" "2017") => :during))
+             (relation-str "2017-W01" "2017") => :during
+             (relation-str "2017-W32-3" "2017-08-09") => :equal
+             (relation-str "2017-221" "2017-08-09") => :equal))
 
-
-(facts "about Allen's Interval Algebra"
-       (fact "Thirteen basic relations in Allen's Interval Algebra"
-             (relation-gen-str "2017" "2017") => :equal
-             (relation-gen-str "2015" "2017") => :before
-             (relation-gen-str "2017" "2015") => :after
-             (relation-gen-str "2016" "2017") => :meets
-             (relation-gen-str "2017" "2016") => :met-by
-             (relation-gen-str "2017-01" "2017") => :starts
-             (relation-gen-str "2017" "2017-01") => :started-by
-             (relation-gen-str "2017-12" "2017") => :finishes
-             (relation-gen-str "2017" "2017-12") => :finished-by
-             (relation-gen-str "2017-02" "2017") => :during
-             (relation-gen-str "2017" "2017-02") => :contains
-             (relation-gen-str "2017-W05" "2017-02") => :overlaps
-             (relation-gen-str "2017-02" "2017-W05") => :overlapped-by)
-
-       (fact "If scales are different."
-             (relation-gen-str "2016-12" "2017") => :meets
-             (relation-gen-str "2016-11" "2017") => :before
-             (relation-gen-str "2017-W01" "2017") => :during))
 
 (fact
   (relation-gen {:starts (iso-to-mj "2017") :finishes (iso-to-mj "2018")}
