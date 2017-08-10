@@ -24,23 +24,30 @@
   [{:keys [starts finishes]}]
   (interval-seq starts finishes))
 
-(defn nested-first [scale]
-  (fn [[^DateTime dt & nesting]]
-    (cons (-> dt ((nesting-fns scale (first nesting))) .withMinimumValue)
-          (cons scale nesting))))
+(defn nested-first
+  ([scale]
+   (fn [[^DateTime dt & nesting]]
+     (cons (-> dt ((nesting-fns scale (first nesting))) .withMinimumValue)
+           (cons scale nesting))))
+  ([scale mjt]
+   ((nested-first scale) mjt)))
 
-(defn nested-last [scale]
-  (fn [[^DateTime dt & nesting]]
-    (cons (-> dt ((nesting-fns scale (first nesting))) .withMaximumValue)
-          (cons scale nesting))))
+(defn nested-last
+  ([scale]
+   (fn [[^DateTime dt & nesting]]
+     (cons (-> dt ((nesting-fns scale (first nesting))) .withMaximumValue)
+           (cons scale nesting))))
+  ([scale mjt]
+   ((nested-last scale) mjt)))
+
 
 (defn nested-seq
   "Return a lazy sequence of subintervals of the specified scale.
    If there is no nested scale in the schema, return empty seq(?)."
-  [scale]
-  (fn [meta-joda]
-    (interval-seq ((nested-first scale) meta-joda)
-                  ((nested-last scale) meta-joda))))
+  ([scale] (partial nested-seq scale))
+  ([scale meta-joda]
+   (interval-seq ((nested-first scale) meta-joda)
+                 ((nested-last scale) meta-joda))))
 
 ;(defn enclosing
 ;  ([[^DateTime date & nesting]]
@@ -48,13 +55,12 @@
 ;  ([scale [^DateTime date & nesting]]
 ;   (cons date (drop-while #(-> % (= scale) not) nesting))))
 
-(defn enclosing-interval
+(defn enclosing-immediate
   ([[^DateTime date & nesting]]
-   (cons date (rest nesting)))
-  ([scale [^DateTime date & nesting]]
-   (cons date (drop-while #(-> % (= scale) not) nesting))))
+   (cons date (rest nesting))))
 
 (defn enclosing
-  ([] enclosing-interval)
-  ([scale] (partial enclosing-interval scale)))
-
+  "The enclosing interval of a specific scale."
+  ([scale] (partial enclosing scale))
+  ([scale [^DateTime date & nesting]]
+   (cons date (drop-while #(-> % (= scale) not) nesting))))

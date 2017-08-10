@@ -95,9 +95,48 @@
 ;        ((apply comp (reverse meta-joda-fns)))
 ;        stringify)))
 
-(defn t-> [time-string & meta-joda-fns]
-  (-> time-string
-      iso-to-mj
-      ((apply comp (reverse meta-joda-fns)))
-      mj-to-iso))
+(defn- destring [string-or-strings]
+  (if (sequential? string-or-strings)
+    (map destring string-or-strings)
+    (iso-to-mj string-or-strings)))
 
+(defn- stringify [mjt-or-mjts]
+  (cond
+    (mj-time? mjt-or-mjts) (mj-to-iso mjt-or-mjts)
+    (sequential? mjt-or-mjts) (map stringify mjt-or-mjts)))
+
+(defmacro t->
+  "Pass in an iso-8601 string, or sequence, and some
+  functions that operate on meta-joda times.
+  Threads similar to ->, except with conversions
+  before and after.
+  Example (t->> \"2017\" time-count.time-count/interval-seq second)
+  (Code is modified from ->> macro.)"
+  [x & forms-in]
+  (let [forms (concat [destring] forms-in [stringify])]
+    (loop [x x, forms forms]
+      (if forms
+        (let [form (first forms)
+              threaded (if (seq? form)
+                         (with-meta `(~(first form) ~x ~@(next form)) (meta form))
+                         (list form x))]
+          (recur threaded (next forms)))
+        x))))
+
+(defmacro t->>
+  "Like ->> for time. Pass in an iso-8601 string or sequence,
+  and some functions that operate on meta-joda times.
+  Threads similar to ->>, except with conversions
+  before and after.
+  Example (t->> \"2017\" time-count.time-count/interval-seq (take 4))
+  (Code is modified from ->> macro.)"
+  [x & in-forms]
+  (let [forms (concat [destring] in-forms [stringify])]
+    (loop [x x, forms forms]
+      (if forms
+        (let [form (first forms)
+              threaded (if (seq? form)
+                         (with-meta `(~(first form) ~@(next form)  ~x) (meta form))
+                         (list form x))]
+          (recur threaded (next forms)))
+        x))))

@@ -8,11 +8,8 @@
       ;; This may be mostly for tests and demos. Perhaps it will be used in some apps.
       (t-> "2017-04-30" identity) => "2017-04-30")
 
-(fact
-  (->> "2017-04" iso-to-mj interval-seq (take 3) (map mj-to-iso)))
-
-(future-fact "In time-count, there is no 'instant'. Only sequences of intervals."
+(fact "In time-count, there is no 'instant'. Only sequences of intervals."
       (t-> "2017-04-09" next-interval) => "2017-04-10"
       (t-> "2017-04" next-interval) => "2017-05"
-      (t-> "2017-04" interval-seq (take 3)) => "x")
+      (t-> "2017-04" interval-seq) => (has-prefix ["2017-04" "2017-05" "2017-06"]))
 
