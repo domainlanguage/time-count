@@ -76,7 +76,7 @@
                     (enclosing :week [(DateTime. 2017 1 1 0 0 0 0) :month :year])
                     => :no-match
                     (enclosing :year [(DateTime. 2017 1 1 0 0 0 0) :month :year])
-                    => :no-match)) ;Not sure on this last one!
+                    => :no-match))                          ;Not sure on this last one!
 
 
 (facts "about nesting sequences of smaller-scale intervals."
@@ -130,13 +130,16 @@
 
        (fact "The composition can be a meaningful, higher-level operation."
              (let [last-day-of-month (comp (nested-last :day) (enclosing :month))]
-               (t-> "2017-02-13"  last-day-of-month)) => "2017-02-28"))
+               (t-> "2017-02-13" last-day-of-month)) => "2017-02-28"))
 
-(facts "about mapping between nesting"
-       (fact ":day :month :year maps to :day :year"
-             (-> "2017-04-25" iso-to-mj ((to-nesting [:day :week :week-year])) mj-to-iso)
-             => "2017-W17-2"))
+(facts "about mapping between nestings"
+       (fact "mapping is bidirectional"
+             (t->> "2017-04-25" (to-nesting [:day :week :week-year]))
+             => "2017-W17-2"
+             (t->> "2017-W17-2" (to-nesting [:day :month :year]))
+             => "2017-04-25"))
+
 
 (future-fact "Daylight savings time"
-             (-> "2016-11-06T01:59" iso-to-mj next-interval)
+             (t-> "2016-11-06T01:59" next-interval)
              => "?")
