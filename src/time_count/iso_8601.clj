@@ -100,22 +100,41 @@
 ;        ((apply comp (reverse meta-joda-fns)))
 ;        stringify)))
 
-(defn- destring [string-or-strings]
-  (if (sequential? string-or-strings)
-    (map destring string-or-strings)
-    (iso-to-mj string-or-strings)))
-
-(defn- stringify [mjt-or-mjts]
+(defn- destring
+  "Turn possible inputs into meta-joda or other
+  usable forms. See details in 'stringify' comment.
+  (Not sure unrecognized inputs should ever happen,
+   but this keeps the symmetry with stringify."
+  [possibly-time-string-s]
   (cond
-    (mj-time? mjt-or-mjts) (mj-to-iso mjt-or-mjts)
-    (sequential? mjt-or-mjts) (map stringify mjt-or-mjts)))
+    (sequential? possibly-time-string-s) (map destring possibly-time-string-s)
+    (string? possibly-time-string-s) (iso-to-mj possibly-time-string-s)
+    :else possibly-time-string-s))
+
+(defn- stringify
+
+  "Results of a time computation could be:
+   - meta-joda value
+   - a list of values
+   - a relation-bounded-interval
+   - other
+   Each of the recognised types is converted into
+   their equivalent string. Unrecognized types are
+   returned unchanged.
+
+   'destring' exactly inverts these conversions."
+  [possibly-mjt-s]
+  (cond
+    (mj-time? possibly-mjt-s) (mj-to-iso possibly-mjt-s)
+    (sequential? possibly-mjt-s) (map stringify possibly-mjt-s)
+    :else possibly-mjt-s))
 
 (defmacro t->
   "Pass in an iso-8601 string, or sequence, and some
   functions that operate on meta-joda times.
   Threads similar to ->, except with conversions
   before and after.
-  Example (t->> \"2017\" time-count.time-count/interval-seq second)
+  Example (t-> \"2017\" time-count.time-count/interval-seq second)
   (Code is modified from ->> macro.)"
   [x & forms-in]
   (let [forms (concat [destring] forms-in [stringify])]
@@ -133,7 +152,7 @@
   and some functions that operate on meta-joda times.
   Threads similar to ->>, except with conversions
   before and after.
-  Example (t->> \"2017\" time-count.time-count/interval-seq (take 4))
+  Example (t->> \"2017\" time-count.time-count/interval-seq (take 3))
   (Code is modified from ->> macro.)"
   [x & in-forms]
   (let [forms (concat [destring] in-forms [stringify])]

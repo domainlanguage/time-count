@@ -15,7 +15,7 @@
       (.plus (DateTime. 2017 3 5 0 0 0 0) (Months/months 1))
       => (DateTime. 2017 4 5 0 0 0 0)
       (.plus (DateTime. 2017 3 31 0 0 0 0) (Months/months 1))
-      ; What do you expect?
+      ; What do you expect? (Scroll down to see)
 
 
 
@@ -30,30 +30,37 @@
 
 ;; Here's a different model:
 ;;  Calendars and time are (for most business software) weird ways of *counting*, not *measuring*.
-;;  All times are intervals, in sequences (so we can count them).
+;;  All times are intervals, in sequences (so we can count forward and backward through them).
 ;;  A sequence of intervals can be nested within an interval of a larger "scale".
+;;  E.g. Days are nested within months. Months are nested within years.
 ;;  Relations between intervals can be well defined.
-;; Also,
-;;  Having a string representation of a time may be important.
-;;  I'm using ISO, and have operations to go between the string and the form I compute on.
 
+;; String representation: ISO 8601
+;;  Having a string representation of a time is important.
+;;  time-count uses ISO 8601, whenever there is a suitable representation,
+;;  and has operations to go between the string and the representation used in computations.
 
-;; Here is a representation of a time, which just adds some metadata to a JodaTime DateTime.
-;; The metadata represents a nesting of scales intended to be significant.
+;; MetaJoda (for computation)
+;;  Most of the time, that computation-friendly representation is 'meta-joda',
+;;  which just adds some metadata to a JodaTime DateTime.
+;;  The metadata represents a nesting of scales intended to be significant.
 ;;
-;; This is a place-holder implementation. It could be any representation that supports
-;; a few primitives (described below). For now, this lets me use a lot of work the JodaTime people have done!
+;;  This is a place-holder implementation. It could be any representation that supports
+;;  a few primitives (described below). For now, this lets us use a lot of work the JodaTime people have done!
+;;  E.g. How many days are in February in 2017? When does New York switch to Daylight Savings Time in 2017?
 ;;
-;; Also, having string representations o
+
 
 (fact "Time representation needs metadata representing nested scale"
-      (-> "2017-04-09" iso-to-mj) => [(DateTime. 2017 4 9 0 0 0 0) :day :month :year]
-      (-> "2017-04-09T11:17" iso-to-mj rest) => [:minute :hour :day :month :year]
-      (-> "2017-04" iso-to-mj rest) => [:month :year])
+      (-> "2017-04-09" from-iso) => [(DateTime. 2017 4 9 0 0 0 0) :day :month :year]
+      (to-iso [(DateTime. 2017 4 9 0 0 0 0) :day :month :year]) => "2017-04-09"
+      (-> "2017-04-09T11:17" from-iso rest) => [:minute :hour :day :month :year]
+      (-> "2017-04" from-iso rest) => [:month :year])
 
-(fact "A convenience function allows application of time transforming functions with ISO 8601 strings."
-      ;; This may be mostly for tests and demos. Perhaps it will be used in some apps.
-      (t-> "2017-04-30" identity) => "2017-04-30")
+(fact "A convenience macro allows application of time transforming functions with ISO 8601 strings."
+      ;; This may be mostly for tests and demos. Perhaps it will be used in some apps for data interchange.
+      (t-> "2017-04-30" identity) => "2017-04-30"
+      (t->> "2017-04-30" identity) => "2017-04-30")
 
 
 ;;Treating all times as intervals has some implications.
@@ -78,8 +85,7 @@
       (-> "2017" iso-to-mj ((nested-seq :month)) count) => 12
       (-> "2017" iso-to-mj ((nested-seq :month)) first mj-to-iso) => "2017-01"
       (t->> "2017" (nested-seq :month) first) => "2017-01"
-      (t->> "2017" (nested-seq :month) last) => "2017-12"
-      )
+      (t->> "2017" (nested-seq :month) last) => "2017-12")
 
 
 (fact "an interval sequence can be nested within an interval of a higher scale."
@@ -144,7 +150,11 @@
 
 (fact "US Thanksgiving is 4th Thursday in November"
       (t-> "2017" thanksgiving-us) => "2017-11-23"
-      (t-> "2018" thanksgiving-us) => "2018-11-22")
+      (t-> "2018" thanksgiving-us) => "2018-11-22"
+      (t->> "2017" interval-seq
+            (map thanksgiving-us)
+            (take 2))
+      => ["2017-11-23" "2018-11-22"])
 
 ;;;;
 
