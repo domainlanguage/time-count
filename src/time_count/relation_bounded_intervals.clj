@@ -1,6 +1,10 @@
 (ns time-count.relation-bounded-intervals
   (:require [time-count.meta-joda :refer [mj-time?]]))
 
+;;
+;;
+;;
+
 (defn flatten-starts [interval]
   (if (or (mj-time? interval)
           (not (contains? interval :starts))

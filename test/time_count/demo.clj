@@ -77,13 +77,13 @@
       ; :week-year is still a puzzle (-> "2017" destringify ((nested-seq :week)) count) => 52?
       (-> "2017" iso-to-mj ((nested-seq :month)) count) => 12
       (-> "2017" iso-to-mj ((nested-seq :month)) first mj-to-iso) => "2017-01"
-      (t-> "2017" (nested-seq :month) first) => "2017-01"
-      (t-> "2017" (nested-seq :month) last) => "2017-12"
+      (t->> "2017" (nested-seq :month) first) => "2017-01"
+      (t->> "2017" (nested-seq :month) last) => "2017-12"
       )
 
 
 (fact "an interval sequence can be nested within an interval of a higher scale."
-      (t-> "2017-04-09" (enclosing)) => "2017-04")
+      (t-> "2017-04-09" enclosing-immediate) => "2017-04")
 
 
 (fact "Higher-level time operations can be composed from these."
@@ -94,8 +94,8 @@
 
         (t-> "2017" last-day2) => "2017-365"
 
-        (t-> "2017-04-19" (later 5)) => "2017-04-24"
-        (t-> "2017" (later 5)) => "2022"
+        (t-> "2017-04-19" ((later 5))) => "2017-04-24"
+        (t-> "2017" ((later 5))) => "2022"
 
         (t-> "2017-04" last-day) => "2017-04-30"
         (t-> "2017" last-day) => "2017-365"

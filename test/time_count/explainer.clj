@@ -11,5 +11,5 @@
 (fact "In time-count, there is no 'instant'. Only sequences of intervals."
       (t-> "2017-04-09" next-interval) => "2017-04-10"
       (t-> "2017-04" next-interval) => "2017-05"
-      (t-> "2017-04" interval-seq) => (has-prefix ["2017-04" "2017-05" "2017-06"]))
+      (t->> "2017-04" interval-seq (take 3)) => ["2017-04" "2017-05" "2017-06"])
 

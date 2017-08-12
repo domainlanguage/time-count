@@ -67,12 +67,17 @@
 (defn iso-to-relation-bounded-interval
   [interval-string]
   (let [[iso-starts iso-finishes] (split interval-string #"/")]
-    {:starts   (iso-to-mj iso-starts)
-     :finishes (iso-to-mj iso-finishes)}))
+
+    (-> (#(if (not= "-" iso-starts)
+            {:starts (iso-to-mj iso-starts)}
+           {}))
+        (#(if (not= "-" iso-finishes)
+            (assoc % :finishes (iso-to-mj iso-finishes))
+            %)))))
 
 (defn relation-bounded-interval-to-iso
   [{:keys [starts finishes]}]
-  (str (mj-to-iso starts) "/" (mj-to-iso finishes)))
+  (str (if starts (mj-to-iso starts) "-") "/" (if finishes (mj-to-iso finishes) "-")))
 
 (defn from-iso [iso-string]
   (if (clojure.string/includes? iso-string "/")
