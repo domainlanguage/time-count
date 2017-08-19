@@ -1,8 +1,11 @@
-(ns time-count.iso-8601
-  (:import [org.joda.time.format DateTimeFormat])
+(ns time-count.iso-8601-old
   (:require [time-count.meta-joda :refer [mj-time?]]
-    [clojure.set :refer [map-invert]]
-            [clojure.string :refer [split]]))
+            [time-count.metajoda]
+            [time-count.allens-interval-algebra :refer [relation-mj relation-gen]]
+            [clojure.set :refer [map-invert]]
+            [clojure.string :refer [split]])
+  (:import [org.joda.time.format DateTimeFormat]
+           [time_count.metajoda MetaJodaTime]))
 
 ;; String representation of time values is important
 ;;  - data interchange
@@ -46,6 +49,9 @@
     (re-matches #"\d\d\d\d-W\d\d-\d" time-string) "xxxx-'W'ww-e"
     :else :NONE))
 
+
+;; Mapping ISO 8601 to MetaJodaTime
+
 (defn iso-to-mj
   ([pattern time-string]
    (cons
@@ -53,6 +59,8 @@
      (pattern-to-nesting pattern)))
   ([time-string]
    (iso-to-mj (time-string-pattern time-string) time-string)))
+
+
 
 
 (defn destringifier-from-scales [nesting]
@@ -64,13 +72,16 @@
 (defn mj-to-iso [[^DateTime date & nesting]]
   (.print (formatter-for-nesting nesting) date))
 
+(defn sequence-time-to-iso [{:keys [dt nesting]}]
+  (.print (formatter-for-nesting nesting) dt))
+
 (defn iso-to-relation-bounded-interval
   [interval-string]
   (let [[iso-starts iso-finishes] (split interval-string #"/")]
 
     (-> (#(if (not= "-" iso-starts)
             {:starts (iso-to-mj iso-starts)}
-           {}))
+            {}))
         (#(if (not= "-" iso-finishes)
             (assoc % :finishes (iso-to-mj iso-finishes))
             %)))))
@@ -160,7 +171,20 @@
       (if forms
         (let [form (first forms)
               threaded (if (seq? form)
-                         (with-meta `(~(first form) ~@(next form)  ~x) (meta form))
+                         (with-meta `(~(first form) ~@(next form) ~x) (meta form))
                          (list form x))]
           (recur threaded (next forms)))
         x))))
+
+(defn relation-str [a b]
+  (relation-mj
+    (iso-to-mj a)
+    (iso-to-mj b)))
+
+(defn relation-gen-str [a b]
+  (relation-gen
+    (iso-to-mj a)
+    (iso-to-mj b)))
+
+
+

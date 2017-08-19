@@ -1,13 +1,15 @@
 (ns time-count.stringifying-tests
-  (:require [time-count.iso-8601 :refer :all]
+  (:require [time-count.iso-8601-old :refer :all]
+            [time-count.metajoda]
             [midje.sweet :refer :all])
-  (:import [org.joda.time DateTime]))
+  (:import [org.joda.time DateTime]
+           [time_count.metajoda MetaJodaTime]))
 
 
 (fact "In cannonical string, least significant place is scale."
-      (mj-to-iso [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
+      (sequence-time-to-iso (MetaJodaTime. (DateTime. 2017 1 10 0 0 0 0) [:day :month :year]))
       => "2017-01-10"
-      (mj-to-iso [(DateTime. 2017 1 10 0 0 0 0) :month :year])
+      (sequence-time-to-iso (MetaJodaTime. (DateTime. 2017 1 10 0 0 0 0) [:month :year]))
       => "2017-01")
 
 (fact "Pattern can be recognized from string."

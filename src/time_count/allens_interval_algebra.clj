@@ -1,8 +1,7 @@
 (ns time-count.allens-interval-algebra
   (:import [org.joda.time DateTime])
   (:require [time-count.time-count :refer [next-interval]]
-            [time-count.meta-joda :refer [mj-time?]]
-            [time-count.iso-8601 :refer [iso-to-mj]])) ; TODO This iso dependency seems iffy
+            [time-count.meta-joda :refer [mj-time?]]))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -43,11 +42,6 @@
 
       :else :TBD)
     ))
-
-(defn relation-str [a b]
-  (relation-mj
-    (iso-to-mj a)
-    (iso-to-mj b)))
 
 (defn starts-to-dt-left [an-interval]
   (if (mj-time? an-interval)
@@ -98,11 +92,6 @@
               (let [{a-left :dt-left a-right :dt-right} (to-dt-left-right a)
                     {b-left :dt-left b-right :dt-right} (to-dt-left-right b)]
                 (relation-dts a-left a-right b-left b-right)))
-
-(defn relation-gen-str [a b]
-  (relation-gen
-    (iso-to-mj a)
-    (iso-to-mj b)))
 
 
 (defn consistent-starts-finishes?

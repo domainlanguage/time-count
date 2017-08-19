@@ -1,7 +1,7 @@
 (ns time-count.explainer
   (:require
     [time-count.time-count :refer :all]
-    [time-count.iso-8601 :refer :all]
+    [time-count.iso-8601-old :refer :all]
     [midje.sweet :refer :all]))
 
 (fact "A convenience function allows application of time transforming functions with ISO 8601 strings."

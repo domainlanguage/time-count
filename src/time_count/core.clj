@@ -1,7 +1,27 @@
 (ns time-count.core
   (:import [org.joda.time DateTime]))
 
-(defprotocol Time
+;Clojure "protocol" isn't really a full protocol, it is just
+; the interface for manipulating one data structure.
+; Time would be an ok name for the whole protocol, but this
+; particular, part is an element in a sequence of...
+;  named times
+;  countable times
+;  time steps
+;  sequential intervals
+;  ticks
+;  steps
+;  enumerated time
+;  time member (of sequence)
+;  nth time
+;  nth interval
+;  counted intervals
+;  step intervals
+;  ...
+;
+; In contrast to "relation-bounded intervals"
+;
+(defprotocol SequenceTime
   (next-interval [t])
   (prev-interval [t])
   (nest [t scale] "Relation-bounded interval equal to the given

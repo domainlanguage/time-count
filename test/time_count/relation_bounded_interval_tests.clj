@@ -1,5 +1,5 @@
 (ns time-count.relation-bounded-interval-tests
-  (:require [time-count.iso-8601 :refer [from-iso]]
+  (:require [time-count.iso-8601-old :refer [from-iso]]
             [time-count.relation-bounded-intervals :refer [flatten-bounds]]
             [time-count.allens-interval-algebra :refer [relation-gen consistent-starts-finishes?]]
             [midje.sweet :refer :all]))

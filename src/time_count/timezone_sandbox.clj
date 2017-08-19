@@ -1,5 +1,5 @@
 (ns time-count.timezone-sandbox
-  (:require [time-count.iso-8601 :refer [formatter-for-pattern]])
+  (:require [time-count.iso-8601-old :refer [formatter-for-pattern]])
   (:import [org.joda.time DateTime Minutes LocalDateTime DateTimeZone]
            [org.joda.time.format DateTimeFormat]))
 

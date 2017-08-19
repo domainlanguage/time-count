@@ -1,7 +1,7 @@
 (ns time-count.time-count-tests
   (:require [time-count.time-count :refer :all]
             [time-count.meta-joda :refer :all]
-            [time-count.iso-8601 :refer :all]
+            [time-count.iso-8601-old :refer :all]
             [midje.sweet :refer :all])
   (:import [org.joda.time DateTime]))
 

@@ -2,8 +2,8 @@
     (:require [midje.sweet :refer :all]
               [time-count.core :refer :all]
               [time-count.metajoda])
-    (:import [time_count.metajoda MetaJodaTime])
-    (:import [org.joda.time DateTime]))
+    (:import [time_count.metajoda MetaJodaTime]
+             [org.joda.time DateTime]))
 
 ;;Note: MetaJodaTime is used because we must have a concrete instance.
 ;; There is nothing specific here to the metajoda implementation.

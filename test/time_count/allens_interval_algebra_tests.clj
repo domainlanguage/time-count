@@ -1,7 +1,7 @@
 (ns time-count.allens-interval-algebra-tests
   (:require [time-count.allens-interval-algebra :refer :all]
             [midje.sweet :refer :all]
-            [time-count.iso-8601 :refer [iso-to-mj]]))
+            [time-count.iso-8601-old :refer [iso-to-mj relation-str]]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Allen's Interval Algebra  ;;;

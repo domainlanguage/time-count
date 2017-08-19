@@ -1,10 +1,14 @@
 (ns time-count.metajoda
-  (:require [time-count.core :refer [Time]]
+  (:require [time-count.core :refer [SequenceTime]]
+            [time-count.iso8601 :refer [ISO8601Mappable]]
             [time-count.meta-joda :refer [scale-to-Period]]
             [time-count.time-count :refer [nested-first nested-last]]
-            [time-count.allens-interval-algebra :refer [relation-mj]])
-  (:import [org.joda.time DateTime]))
-
+            [time-count.allens-interval-algebra :refer [relation-mj]]
+            )
+  (:import [org.joda.time DateTime]
+       ;       [time_count.iso8601 ISO8601Mappable]
+           )
+  )
 ;; TODO Replace meta-joda require with new stuff in core
 ;; TODO Replace time-count require with new stuff here.
 ;; TODO Replace allens-interval-algebra require with new stuff somewhere.
@@ -12,7 +16,7 @@
 
 
 (defrecord MetaJodaTime [^DateTime dt nesting]
-  Time
+  SequenceTime
 
   (next-interval [t]
     (MetaJodaTime.
@@ -39,6 +43,8 @@
   (relation [t1 t2]
     (relation-mj
       (cons (:dt t1) (:nesting t1))
-      (cons (:dt t2) (:nesting t2)))))
+      (cons (:dt t2) (:nesting t2))))
+  )
+
 
 
