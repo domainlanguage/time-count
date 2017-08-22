@@ -209,7 +209,7 @@
                   (last-enclosed :day)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Now more about an enclosing interval as a series ;;;
+;;; Now more about an enclosing-immediate interval as a series ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; day 6 of 2017-01 = 2017-01-06

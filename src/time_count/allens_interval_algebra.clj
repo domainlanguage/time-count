@@ -114,3 +114,13 @@
   [{:keys [starts finishes] :as interval-bounds}]
   (or (-> interval-bounds keys count (< 2))
       (#{:before :meets :overlaps} (relation-mj starts finishes))))
+
+
+;; sketching
+(defn relation
+  "Calculation of relation between two relation-bounded-intervals,
+  or between a relation-bounded-interval and a SequenceTime.
+  RelationBoundedInterval will be restricted to the case where
+  "
+  [i1 i2]
+  )

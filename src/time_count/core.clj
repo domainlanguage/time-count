@@ -26,7 +26,7 @@
   (prev-interval [t])
   (nest [t scale] "Relation-bounded interval equal to the given
                      Time interval, but nesting the given scales.")
-  (enclosing [t] "Immediate enclosing interval.")
+  (enclosing-immediate [t] "Immediate enclosing-immediate interval.")
   (relation [t1 t2] "Return one of Allen's 13 basic relations."))
 
 (defn t-sequence [{:keys [starts finishes]}]
@@ -40,6 +40,13 @@
   (if starts
     (take-while #(#{:after :met-by :equal} (relation % starts)) (iterate prev-interval finishes))
     (iterate next-interval finishes)))
+
+(defn enclosing
+  ([{:keys [dt nesting] :as t} scale]
+   (cond
+     (-> nesting first (= scale)) t
+     (-> nesting count (< 2)) nil
+     :else (recur (enclosing-immediate t) scale))))
 
 ; Sketching protocol ...
 
@@ -56,3 +63,4 @@
 ; (nest [:day :month] 2017)
 ; => {:starts 2017-01-01 :finishes 2017-12-31}
 
+(defrecord RelationBoundedInterval [starts finishes])

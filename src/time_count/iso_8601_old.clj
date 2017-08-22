@@ -1,56 +1,23 @@
 (ns time-count.iso-8601-old
   (:require [time-count.meta-joda :refer [mj-time?]]
             [time-count.metajoda]
+            [time-count.iso8601 :refer [time-string-pattern pattern-to-nesting nesting-to-pattern]]
             [time-count.allens-interval-algebra :refer [relation-mj relation-gen]]
             [clojure.set :refer [map-invert]]
             [clojure.string :refer [split]])
   (:import [org.joda.time.format DateTimeFormat]
            [time_count.metajoda MetaJodaTime]))
 
-;; String representation of time values is important
-;;  - data interchange
-;;  - tests
-;;  - demos
-;;  - ...
-;;
-;; The chosen string representation of time-count is ISO 8601,
-;; which is well-documented.
-;;  Best reference: https://xkcd.com/1179/
-;;  Good introductory explanation: https://en.wikipedia.org/wiki/ISO_8601
-;;  The official source: https://www.iso.org/iso-8601-date-and-time-format.html
 
-(def pattern-to-nesting
-  {"yyyy"               [:year]
-   "yyyy-MM"            [:month :year]
-   "yyyy-MM-dd"         [:day :month :year]
-   "yyyy-MM-dd'T'HH"    [:hour :day :month :year]
-   "yyyy-MM-dd'T'HH:mm" [:minute :hour :day :month :year]
-   "yyyy-DDD"           [:day :year]
-   "xxxx"               [:week-year]
-   "xxxx-'W'ww"         [:week :week-year]
-   "xxxx-'W'ww-e"       [:day :week :week-year]})
 
-(def nesting-to-pattern
-  (map-invert pattern-to-nesting))
 
+
+
+;; Mapping ISO 8601 to MetaJodaTime
 (defn formatter-for-pattern [pattern] (-> pattern DateTimeFormat/forPattern .withOffsetParsed))
 
 (defn formatter-for-nesting [nesting] (-> nesting nesting-to-pattern formatter-for-pattern))
 
-(defn time-string-pattern [time-string]
-  (cond
-    (re-matches #"\d\d\d\d" time-string) "yyyy"
-    (re-matches #"\d\d\d\d-\d\d" time-string) "yyyy-MM"
-    (re-matches #"\d\d\d\d-\d\d-\d\d" time-string) "yyyy-MM-dd"
-    (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d" time-string) "yyyy-MM-dd'T'HH"
-    (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d:\d\d" time-string) "yyyy-MM-dd'T'HH:mm"
-    (re-matches #"\d\d\d\d-\d\d\d" time-string) "yyyy-DDD"
-    (re-matches #"\d\d\d\d-W\d\d" time-string) "xxxx-'W'ww"
-    (re-matches #"\d\d\d\d-W\d\d-\d" time-string) "xxxx-'W'ww-e"
-    :else :NONE))
-
-
-;; Mapping ISO 8601 to MetaJodaTime
 
 (defn iso-to-mj
   ([pattern time-string]
@@ -61,19 +28,9 @@
    (iso-to-mj (time-string-pattern time-string) time-string)))
 
 
-
-
-(defn destringifier-from-scales [nesting]
-  (fn [time-string]
-    (cons
-      (.parseDateTime (formatter-for-nesting nesting) time-string)
-      nesting)))
-
 (defn mj-to-iso [[^DateTime date & nesting]]
   (.print (formatter-for-nesting nesting) date))
 
-(defn sequence-time-to-iso [{:keys [dt nesting]}]
-  (.print (formatter-for-nesting nesting) dt))
 
 (defn iso-to-relation-bounded-interval
   [interval-string]

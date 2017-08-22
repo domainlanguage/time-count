@@ -1,14 +1,13 @@
 (ns time-count.metajoda
   (:require [time-count.core :refer [SequenceTime]]
-            [time-count.iso8601 :refer [ISO8601Mappable]]
+            [time-count.iso8601 :refer :all]
             [time-count.meta-joda :refer [scale-to-Period]]
             [time-count.time-count :refer [nested-first nested-last]]
-            [time-count.allens-interval-algebra :refer [relation-mj]]
-            )
+            [time-count.allens-interval-algebra :refer [relation-mj]])
+
   (:import [org.joda.time DateTime]
-       ;       [time_count.iso8601 ISO8601Mappable]
-           )
-  )
+           [org.joda.time.format DateTimeFormat]))
+
 ;; TODO Replace meta-joda require with new stuff in core
 ;; TODO Replace time-count require with new stuff here.
 ;; TODO Replace allens-interval-algebra require with new stuff somewhere.
@@ -16,6 +15,7 @@
 
 
 (defrecord MetaJodaTime [^DateTime dt nesting]
+
   SequenceTime
 
   (next-interval [t]
@@ -36,7 +36,7 @@
       {:starts   (MetaJodaTime. dtf new-nesting)
        :finishes (MetaJodaTime. dtl new-nesting)}))
 
-  (enclosing [t]
+  (enclosing-immediate [t]
     (let [[dtf & _] (nested-first (first nesting) (cons dt (rest nesting)))]
       (MetaJodaTime. dtf (rest nesting))))
 
@@ -44,7 +44,25 @@
     (relation-mj
       (cons (:dt t1) (:nesting t1))
       (cons (:dt t2) (:nesting t2))))
-  )
+
+
+  ISO8601Mappable
+
+  (to-iso [t]
+    (.print (-> nesting nesting-to-pattern DateTimeFormat/forPattern .withOffsetParsed) dt)))
 
 
 
+(extend-type String
+  ISO8601Pattern
+  (iso-parser [pattern]
+    (fn [time-string]
+      (MetaJodaTime.
+        (.parseDateTime (-> pattern DateTimeFormat/forPattern .withOffsetParsed) time-string)
+        (pattern-to-nesting pattern)))))
+
+
+(extend-type String
+  ISO8601SequenceTime
+  (from-iso-sequence-time [time-string]
+    ((-> time-string time-string-pattern iso-parser) time-string)))

@@ -1,5 +1,6 @@
 (ns time-count.relation-bounded-intervals
-  (:require [time-count.meta-joda :refer [mj-time?]]))
+  (:require [time-count.core :refer [relation]]
+            [time-count.meta-joda :refer [mj-time?]]))
 
 ;;
 ;;
@@ -25,3 +26,25 @@
   (-> interval
       flatten-starts
       flatten-ends))
+
+;; BELOW HERE, USES NEW
+(defn consistent?
+  "This implementation works only for one case,
+  where the :starts and :finishes are used.
+
+  In Allen's algebra, we can compose relations:
+  a(r)x, x(s)b => a(r.s)b
+  Using one or both of {:starts a :finishes b} defines an interval x,
+  which is the same as saying: a(starts)x, x(ended-by)b
+  Now switching to notation from https://www.ics.uci.edu/~alspaugh/cls/shr/allen.html
+  a(s)x, x(E)b and using the composition table in that article,
+  (s).(E) => (pmo)
+  So, the two relations that define x are consistent if a(pmo)b
+  Switching back to the words used in this module, where p = :before, m = :meets, o = :overlaps,
+  The relation of a and b must be in the set #{:before :meets :overlaps}.
+
+  If there are fewer than two specified relations, no conflict is possible."
+
+  [{:keys [starts finishes] :as interval-bounds}]
+  (or (or (nil? starts) (nil? finishes))
+      (#{:before :meets :overlaps} (relation starts finishes))))

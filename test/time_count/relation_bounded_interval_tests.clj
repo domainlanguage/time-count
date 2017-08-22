@@ -1,6 +1,7 @@
 (ns time-count.relation-bounded-interval-tests
   (:require [time-count.iso-8601-old :refer [from-iso]]
-            [time-count.relation-bounded-intervals :refer [flatten-bounds]]
+            [time-count.iso8601 :as iso]
+            [time-count.relation-bounded-intervals :refer [flatten-bounds consistent?]]
             [time-count.allens-interval-algebra :refer [relation-gen consistent-starts-finishes?]]
             [midje.sweet :refer :all]))
 
@@ -9,7 +10,7 @@
 ; (part of a sequence of intervals that meet).
 ;  -next-interval
 ;  -interval-seq
-;  -enclosing
+;  -enclosing-immediate
 ;  -nested (scale)
 ;  -allen's relation
 
@@ -21,7 +22,6 @@
 ;     e.g. (satisfies [:starts 2017] 2017-01) => true
 ;          (satisfies [:overlaps 2017] 2017-01) => false
 ;   - combine with AND
-
 
 ; relation-bounded interval
 ;   defined by one or more relation-specs
@@ -38,8 +38,8 @@
 ;         although interval-last could still have a value with :finishes and not :starts)
 ;   -nested (scale)
 ;   e.g. ((nested :month) {:starts 2017 :finishes 2018}) => {:starts 2017-01 :finishes 2018-12}
-;   -enclosing (???)
-;   e.g. (enclosing {:starts 2017-03 :finishes 2018-03}) => {:starts 2017 :finishes 2018} ???
+;   -enclosing-immediate (???)
+;   e.g. (enclosing-immediate {:starts 2017-03 :finishes 2018-03}) => {:starts 2017 :finishes 2018} ???
 ;
 
 ;; Perhaps boundary relations may not bound both sides.
@@ -58,15 +58,14 @@
 ;  Not knowing when it started does not imply that it might be infinitely old.
 ;
 
-;; If we define an interval with :starts and :finishes,
-;; how do we know the two are consistent-starts-ends?
+
 (fact "Boundary relations must be consistent"
-      (consistent-starts-finishes? {:starts (from-iso "2016") :finishes (from-iso "2018")}) => truthy
-      (consistent-starts-finishes? {:starts (from-iso "2019") :finishes (from-iso "2016")}) => falsey
-      (consistent-starts-finishes? {:starts (from-iso "2016") :finishes (from-iso "2017-06")}) => truthy
-      (consistent-starts-finishes? {:starts (from-iso "2016") :finishes (from-iso "2016-06")}) => falsey
-      (consistent-starts-finishes? {:starts (from-iso "2017")}) => truthy
-      (consistent-starts-finishes? {:finishes (from-iso "2017")}) => truthy)
+      (consistent? (iso/from-iso "2016/2018")) => truthy
+      (consistent? (iso/from-iso "2019/2016")) => falsey
+      (consistent? (iso/from-iso "2016/2017-06")) => truthy
+      (consistent? (iso/from-iso "2016/2016-06")) => falsey
+      (consistent? (iso/from-iso "2017/-")) => truthy
+      (consistent? (iso/from-iso "-/2017")) => truthy)
 
 (fact "With boundaries restricted to starts/ends, deep compositions can be flattened"
       ;TODO How to verify consistency of compositions?

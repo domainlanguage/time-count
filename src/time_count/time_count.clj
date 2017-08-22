@@ -49,7 +49,7 @@
    (interval-seq ((nested-first scale) meta-joda)
                  ((nested-last scale) meta-joda))))
 
-;(defn enclosing
+;(defn enclosing-immediate
 ;  ([[^DateTime date & nesting]]
 ;   (cons date (rest nesting)))
 ;  ([scale [^DateTime date & nesting]]
@@ -60,7 +60,7 @@
    (cons date (rest nesting))))
 
 (defn enclosing
-  "The enclosing interval of a specific scale."
+  "The enclosing-immediate interval of a specific scale."
   ([scale] (partial enclosing scale))
   ([scale [^DateTime date & nesting]]
    (cons date (drop-while #(-> % (= scale) not) nesting))))
