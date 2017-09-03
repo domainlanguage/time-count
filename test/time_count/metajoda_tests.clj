@@ -6,8 +6,8 @@
   (:import [org.joda.time DateTime]))
 
 (deftest nesting
-  (is (= {:starts   (->MetaJodaTime (DateTime. 2017 3 1 0 0 0 0) [:day :month :year])
-          :finishes (->MetaJodaTime (DateTime. 2017 3 31 0 0 0 0) [:day :month :year])}
+  (is (= (map->RelationBoundedInterval {:starts   (->MetaJodaTime (DateTime. 2017 3 1 0 0 0 0) [:day :month :year])
+          :finishes (->MetaJodaTime (DateTime. 2017 3 31 0 0 0 0) [:day :month :year])})
          (nest (->MetaJodaTime (DateTime. 2017 3 1 0 0 0 0) [:month :year]) :day)))
   (is (= (->MetaJodaTime (DateTime. 2017 3 1 0 0 0 0) [:month :year])
          (enclosing-immediate (->MetaJodaTime (DateTime. 2017 3 3 0 0 0 0) [:day :month :year])))))

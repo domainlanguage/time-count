@@ -1,31 +1,29 @@
 (ns time-count.relation-bounded-intervals
-  (:require [time-count.core :refer [relation]]
-            [time-count.meta-joda :refer [mj-time?]]))
+  (:require [time-count.core :refer [relation SequenceTime map->RelationBoundedInterval]]))
 
-;;
-;;
-;;
+
 
 (defn flatten-starts [interval]
-  (if (or (mj-time? interval)
-          (not (contains? interval :starts))
-          (mj-time? (interval :starts)))
+  (if (or (satisfies? SequenceTime interval)
+          (nil? (:starts interval))
+          (satisfies? SequenceTime (:starts interval)))
     interval
     (recur (assoc interval :starts (-> interval :starts :starts)))))
 
-(defn flatten-ends [interval]
-  (if (or (mj-time? interval)
-          (not (contains? interval :finishes))
-          (mj-time? (interval :finishes)))
+(defn flatten-finishes [interval]
+  (if (or (satisfies? SequenceTime interval)
+          (nil? (:finishes interval))
+          (satisfies? SequenceTime (:finishes interval)))
     interval
     (recur (assoc interval :finishes (-> interval :finishes :finishes)))))
 
 
-(defn flatten-bounds
-  [interval]
-  (-> interval
-      flatten-starts
-      flatten-ends))
+  (defn flatten-bounds
+    [interval]
+    (-> interval
+        flatten-starts
+        flatten-finishes))
+
 
 ;; BELOW HERE, USES NEW
 (defn consistent?

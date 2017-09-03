@@ -2,7 +2,8 @@
   (:require [time-count.core :refer [map->RelationBoundedInterval]]
             [clojure.set :refer [map-invert]])
   ;(:import [time_count.core SequenceTime])
-  (:import (time_count.core RelationBoundedInterval)))
+  (:import (time_count.core RelationBoundedInterval))
+  )
 
 ;; String representation of time values is needed for
 ;;  - data interchange

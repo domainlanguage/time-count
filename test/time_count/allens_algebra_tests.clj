@@ -23,6 +23,16 @@
              (t->> ["2017-W05" "2017-02"] (apply relation)) => :overlaps
              (t->> ["2017-02" "2017-W05"] (apply relation)) => :overlapped-by)
 
+       (facts "about inverse relations"
+              (fact "Each basic relation has an inverse"
+                    (inverse-relation :equal) => :equal
+                    (inverse-relation :before) => :after
+                    ; etc.
+                    (inverse-relation :equal) => :equal)
+              (fact "Reversing the order of the args produces the inverse relation"
+                    (t->> ["2015" "2017"] (apply relation) inverse-relation)
+                    => (t->> ["2017" "2015"] (apply relation))))
+
        (fact "Different scales with same nesting can always be related."
              (t->> ["2016-12" "2017"] (apply relation)) => :meets
              (t->> ["2016-11" "2017"] (apply relation)) => :before)
@@ -35,8 +45,11 @@
 (facts "about relation-bounded intervals"
        (fact
          (relation (from-iso "2017/2018") (from-iso "2020/2021")) => :before
+         (relation (from-iso "2017/2018") (from-iso "2017/2021")) => :starts
+         ;     (relation (from-iso "2017") (from-iso "2017/2018")) => :starts
+
          ))
-        ; (relation-gen {:starts (iso-to-mj "2017") :finishes (iso-to-mj "2020")}
-        ;               {:starts (iso-to-mj "2019") :finishes (iso-to-mj "2021")}) => :overlaps
-        ; (relation-gen (iso-to-mj "2017")
-        ;               {:starts (iso-to-mj "2020") :finishes (iso-to-mj "2021")}) => :before))
+; (relation-gen {:starts (iso-to-mj "2017") :finishes (iso-to-mj "2020")}
+;               {:starts (iso-to-mj "2019") :finishes (iso-to-mj "2021")}) => :overlaps
+; (relation-gen (iso-to-mj "2017")
+;               {:starts (iso-to-mj "2020") :finishes (iso-to-mj "2021")}) => :before))

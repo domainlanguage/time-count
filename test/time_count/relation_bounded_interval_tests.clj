@@ -1,8 +1,7 @@
 (ns time-count.relation-bounded-interval-tests
-  (:require [time-count.iso-8601-old :refer [from-iso]]
-            [time-count.iso8601 :as iso]
-            [time-count.relation-bounded-intervals :refer [flatten-bounds consistent?]]
-            [time-count.allens-interval-algebra :refer [relation-gen consistent-starts-finishes?]]
+  (:require [time-count.core :refer [->RelationBoundedInterval map->RelationBoundedInterval]]
+            [time-count.iso8601 :refer [from-iso] :as iso]
+            [time-count.relation-bounded-intervals :refer :all] ; :refer [flatten-bounds consistent?]]
             [midje.sweet :refer :all]))
 
 
@@ -67,7 +66,16 @@
       (consistent? (iso/from-iso "2017/-")) => truthy
       (consistent? (iso/from-iso "-/2017")) => truthy)
 
+(fact "So long as we restrict bounds to :starts and :finishes, deep compositions can be flattened to equivalent intervals."
+      (flatten-bounds (->RelationBoundedInterval
+                        (->RelationBoundedInterval
+                          (iso/from-iso "2017-06")
+                          (iso/from-iso "2017-07/2017-08"))
+                        (iso/from-iso "2017-07/2017-10")))
+      => (iso/from-iso "2017-06/2017-10"))
+
 (fact "With boundaries restricted to starts/ends, deep compositions can be flattened"
+
       ;TODO How to verify consistency of compositions?
       (flatten-bounds {:starts
                        {:starts
@@ -77,26 +85,13 @@
                        {:starts (from-iso "2017-07") :finishes (from-iso "2017-10")}})
       => {:starts (from-iso "2017-06") :finishes (from-iso "2017-10")})
 
-(fact "Relations between two bounded intervals can be inferred."
-             (relation-gen {:starts (from-iso "2016")
-                                :finishes   (from-iso "2018")}
-                               {:starts (from-iso "2017")
-                                :finishes   (from-iso "2019")})
-             => :overlaps)
-
-;(fact "Relations between two bounded intervals can be inferred."
-;      (relation-gen (from-iso "2016/2018")
-;                    {:starts (from-iso "2017")
-;                     :finishes   (from-iso "2019")})
-;      => :overlaps)
-
-;;How broad should we try to go? :starts / :finishes only?
-(future-fact "Any pair of consistent, fully-defined intervals have a relation."
-             (relation-gen
-               {:starts (from-iso "2016")
-                :finishes   (from-iso "2017")}
-               {:meets  (from-iso "2015")
-                :met-by (from-iso "2018")}) => :equal)
+  ;;How broad should we try to go? :starts / :finishes only?
+  (future-fact "Any pair of consistent, fully-defined intervals have a relation."
+               (relation-gen
+                 {:starts   (from-iso "2016")
+                  :finishes (from-iso "2017")}
+                 {:meets  (from-iso "2015")
+                  :met-by (from-iso "2018")}) => :equal)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

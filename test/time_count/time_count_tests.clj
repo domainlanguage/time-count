@@ -5,49 +5,7 @@
             [midje.sweet :refer :all])
   (:import [org.joda.time DateTime]))
 
-(facts "about interval sequences"
-       (fact "A named time interval is part of a sequence of intervals of that scale,
-       with can be traversed with next-interval."
-             (next-interval [(DateTime. 2017 1 10 0 0 0 0) :day :month :year])
-             => [(DateTime. 2017 1 11 0 0 0 0) :day :month :year]
-             (next-interval [(DateTime. 2016 12 31 0 0 0 0) :day :month :year])
-             => [(DateTime. 2017 1 1 0 0 0 0) :day :month :year])
 
-       (fact "We can make a bounded sequence."
-             (take 3 (interval-seq [(DateTime. 2016 12 31 0 0 0 0) :day :month :year]))
-             => [[(DateTime. 2016 12 31 0 0 0 0) :day :month :year]
-                 [(DateTime. 2017 1 1 0 0 0 0) :day :month :year]
-                 [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]]
-
-             (interval-seq [(DateTime. 2016 12 31 0 0 0 0) :day :month :year]
-                           [(DateTime. 2017 1 2 0 0 0 0) :day :month :year])
-             => [[(DateTime. 2016 12 31 0 0 0 0) :day :month :year]
-                 [(DateTime. 2017 1 1 0 0 0 0) :day :month :year]
-                 [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]])
-
-       ;; TODO Decide on style of representation of intervals
-       (fact "A time interval is equivalent to a bounded sequence."
-             (interval-seq2 {:starts [(DateTime. 2016 12 31 0 0 0 0) :day :month :year] :finishes [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]})
-             => [[(DateTime. 2016 12 31 0 0 0 0) :day :month :year]
-                 [(DateTime. 2017 1 1 0 0 0 0) :day :month :year]
-                 [(DateTime. 2017 1 2 0 0 0 0) :day :month :year]])
-
-
-
-       (fact "In meta-joda, we ignore any value of scales below those specified (impl detail)."
-             (same-time? [(DateTime. 2017 4 30 0 0 0 0) :day :month :year]
-                         [(DateTime. 2017 4 30 1 2 3 4) :day :month :year])
-             => truthy
-             (same-time? [(DateTime. 2017 4 30 0 0 0 0) :day :month :year]
-                         [(DateTime. 2017 4 29 1 2 3 4) :day :month :year])
-             => falsey)
-
-
-
-       (future-fact "Members of an interval sequence are at the same scale."
-                    ((interval-seq [(DateTime. 2016 12 31 0 0 0 0) :day :month :year]
-                                   [(DateTime. 2017 3 1 0 0 0 0) :month :year])
-                      => :no-match)))
 
 (facts "about a convenience function for operations of ISO 8601 -> ISO 8601"
        (fact (t-> "2017-04-30" identity) => "2017-04-30")

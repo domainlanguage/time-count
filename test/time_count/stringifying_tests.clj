@@ -4,7 +4,6 @@
             [time-count.metajoda :refer [->MetaJodaTime]]
             [midje.sweet :refer :all])
   (:import [org.joda.time DateTime]))
-;           [time_count.metajoda MetaJodaTime]))
 
 
 (fact "In cannonical string, least significant place is scale."
