@@ -90,7 +90,7 @@
   [t]
   (cond
     (satisfies? ISO8601Mappable t) (to-iso t)
-    (sequential? t) (map to-iso t)
+    (sequential? t) (map stringify t)
     :else t))
 
 (defn destring
@@ -99,7 +99,8 @@
   iso-strings, for example."
   [iso-string-s]
   (cond
-    (sequential? iso-string-s) (map from-iso iso-string-s)
+    (sequential? iso-string-s) (map destring iso-string-s)
+    (not (string? iso-string-s)) iso-string-s
     :else (from-iso iso-string-s)))
 
 

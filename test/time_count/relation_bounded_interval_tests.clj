@@ -85,13 +85,13 @@
                        {:starts (from-iso "2017-07") :finishes (from-iso "2017-10")}})
       => {:starts (from-iso "2017-06") :finishes (from-iso "2017-10")})
 
-  ;;How broad should we try to go? :starts / :finishes only?
-  (future-fact "Any pair of consistent, fully-defined intervals have a relation."
-               (relation-gen
-                 {:starts   (from-iso "2016")
-                  :finishes (from-iso "2017")}
-                 {:meets  (from-iso "2015")
-                  :met-by (from-iso "2018")}) => :equal)
+;;How broad should we try to go? :starts / :finishes only?
+(future-fact "Any pair of consistent, fully-defined intervals have a relation."
+             (relation
+               {:starts   (from-iso "2016")
+                :finishes (from-iso "2017")}
+               {:meets  (from-iso "2015")
+                :met-by (from-iso "2018")}) => :equal)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

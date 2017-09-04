@@ -30,7 +30,9 @@
   (prev-interval [t])
   (nest [t scale] "Relation-bounded interval equal to the given
                      Time interval, but nesting the given scales.")
-  (enclosing-immediate [t] "Immediate enclosing-immediate interval."))
+  (enclosing-immediate [t] "Immediate enclosing-immediate interval.")
+  (place-values [t] "Pairs of [scale value] in order of nesting.")
+  (to-nesting [t scales] "Map this time to a time in a sequence with another nesting."))
 
 (defn t-sequence [{:keys [starts finishes]}]
   ; :pre must contain starts. starts/finishes must have same nesting.

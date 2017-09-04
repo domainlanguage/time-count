@@ -1,10 +1,8 @@
 (ns time-count.demo
-  (:require
-    [time-count.core :refer :all]
-    [time-count.iso8601 :refer [to-iso from-iso t->]]
-    [time-count.metajoda :refer [->MetaJodaTime]]
-  ;  [time-count.meta-joda :refer [place-value to-nesting]]
-    [midje.sweet :refer :all])
+  (:require [time-count.core :refer :all]
+            [time-count.iso8601 :refer [to-iso from-iso t->]]
+            [time-count.metajoda :refer [->MetaJodaTime]]
+            [midje.sweet :refer :all])
   (:import [org.joda.time DateTime]))
 
 
@@ -78,7 +76,9 @@
       (t-> "2017" (nest :month) t-sequence last) => "2017-12")
 
 (fact "a member of an interval sequence nested within a larger interval"
-      (t-> "2017-04-09" enclosing-immediate) => "2017-04")
+      (t-> "2017-04-09" enclosing-immediate) => "2017-04"
+      (t-> "2017-04-09" (enclosing :year)) => "2017"
+      (t-> "2017-04-09" (enclosing :day)) => "2017-04-09")
 
 
 (facts "about composing higher-level time operations from the basic protocol."
@@ -102,76 +102,77 @@
 ; and find last interval of same scale, etc.
 
 
-(comment
+; Business rules can be composed from these basic operations.
+(fact " Example: invoice due"
+      (let [net-30 (fn [t] (-> t (enclosing :day) (#(t-sequence {:starts %})) (nth 30)))
+            eom #(-> % (enclosing :month) (nest :day) :finishes)
+            net-30-eom (comp eom net-30)
+            overdue? (fn [due-date t] (#{:after :met-by} (relation t due-date)))]
 
+        (t-> "2017-01-15" net-30) => "2017-02-14"
+        (t-> "2017-01-20" eom) => "2017-01-31"
+        (t-> "2017-01-15T17:00" net-30-eom) => "2017-02-28"
 
-  ; Business rules can be composed from these basic operations.
-  (fact " Example: invoice due"
-        (let [net-30 (comp #(nth % 30) interval-seq)
-              eom (comp (nested-last :day) (enclosing-immediate :month))
-              net-30-EOM (comp eom next-interval (enclosing-immediate :month))
-              overdue? (fn [terms completion-date today] (#{:after :met-by} (relation-str today (t-> completion-date terms))))]
-
-          (t-> "2017-01-15" net-30) => "2017-02-14"
-          (t-> "2017-01-15" net-30-EOM) => "2017-02-28"
-          (overdue? net-30 "2017-01-15" "2017-02-10T14:30") => falsey
-          (overdue? net-30 "2017-01-15" "2017-02-20") => truthy
-          (overdue? net-30-EOM "2017-01-15" "2017-02-20") => falsey
-          (overdue? net-30-EOM "2017-01-15" "2017-03-01") => truthy))
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;; Building up functions and then deriving holidays ;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (defn day-of-week [ymd]
-    (-> ymd
-        ((to-nesting [:day :week :week-year]))
-        (#(place-value :day %))))
-
-  (defn thursday? [ymd]
-    (= 4 (day-of-week ymd)))
-
-  (defn november [year]
-    (-> year
-        ((nested-seq :month))
-        (nth 10)))
-
-  (defn thanksgiving-us [year]
-    (-> year
-        november
-        ((nested-seq :day))
-        (#(filter thursday? %))
-        (nth 3)))
-
-  (fact "US Thanksgiving is 4th Thursday in November"
-        (t-> "2017" thanksgiving-us) => "2017-11-23"
-        (t-> "2018" thanksgiving-us) => "2018-11-22"
-        (t->> "2017" interval-seq
-              (map thanksgiving-us)
-              (take 2))
-        => ["2017-11-23" "2018-11-22"])
-
-  ;;;;
-
-  (defn monday? [ymd]
-    (= 1 (day-of-week ymd)))
-
-  (defn may [year]
-    (-> year
-        ((nested-seq :month))
-        (nth 4)))
-
-  (defn memorial-day-us [year]
-    (-> year
-        may
-        ((nested-seq :day))
-        (#(filter monday? %))
-        last))
-
-  (fact "US Memorial Day is the last Monday in May"
-        (t-> "2017" memorial-day-us) => "2017-05-29"
-        (t-> "2018" memorial-day-us) => "2018-05-28")
+        (let [work-completion (from-iso "2017-01-15T17:00")
+              t1 (from-iso "2017-02-20T14:30")
+              t2 (from-iso "2017-03-01T09:15")]
+          (overdue? (net-30-eom work-completion) t1) => falsey
+          (overdue? (net-30-eom work-completion) t2) => truthy)))
 
 
 
-  )
+(comment "holidays examples"
+         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+         ;; Building up functions and then deriving holidays ;;
+         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+         (defn day-of-week [ymd]
+           (-> ymd
+               ((to-nesting [:day :week :week-year]))
+               (#(place-value :day %))))
+
+         (defn thursday? [ymd]
+           (= 4 (day-of-week ymd)))
+
+         (defn november [year]
+           (-> year
+               ((nested-seq :month))
+               (nth 10)))
+
+         (defn thanksgiving-us [year]
+           (-> year
+               november
+               ((nested-seq :day))
+               (#(filter thursday? %))
+               (nth 3)))
+
+         (fact "US Thanksgiving is 4th Thursday in November"
+               (t-> "2017" thanksgiving-us) => "2017-11-23"
+               (t-> "2018" thanksgiving-us) => "2018-11-22"
+               (t->> "2017" interval-seq
+                     (map thanksgiving-us)
+                     (take 2))
+               => ["2017-11-23" "2018-11-22"])
+
+         ;;;;
+
+         (defn monday? [ymd]
+           (= 1 (day-of-week ymd)))
+
+         (defn may [year]
+           (-> year
+               ((nested-seq :month))
+               (nth 4)))
+
+         (defn memorial-day-us [year]
+           (-> year
+               may
+               ((nested-seq :day))
+               (#(filter monday? %))
+               last))
+
+         (fact "US Memorial Day is the last Monday in May"
+               (t-> "2017" memorial-day-us) => "2017-05-29"
+               (t-> "2018" memorial-day-us) => "2018-05-28")
+
+         )

@@ -1,8 +1,8 @@
 (ns time-count.contrast-with-joda
-    (:require [time-count.core :refer :all]
-              [time-count.iso8601 :refer [t->]]
-              [time-count.metajoda] ;Must have SOME impl in namespace
-              [midje.sweet :refer :all])
+  (:require [time-count.core :refer :all]
+            [time-count.iso8601 :refer [t->]]
+            [time-count.metajoda]                           ;Must have SOME impl in namespace
+            [midje.sweet :refer :all])
   (:import [org.joda.time DateTime Days Months]))
 
 ;; Time libraries usually view time as a measure
@@ -35,13 +35,13 @@
       (let [later (fn [n] #(-> {:starts %} t-sequence (nth n)))]
         (t-> "2017-04-19" ((later 5))) => "2017-04-24"
         (t-> "2017-03" ((later 1))) => "2017-04")
-        ; To add months to a :day :month :year, you have
-        ; to explicitly say what that actually means
-        ;   (let [same-day-next-month ...]
-        ;       march 5 plus month
-        ;       march 31 plus month => nil)
-        ; If we want the jodatime behavior, we can say so
-        ; (let [next-month-same-day-or-eom (or ...)
-        ;  march 5 +
-        ;  march 31 +
-        )
+      ; To add months to a :day :month :year, you have
+      ; to explicitly say what that actually means
+      ;   (let [same-day-next-month ...]
+      ;       march 5 plus month
+      ;       march 31 plus month => nil)
+      ; If we want the jodatime behavior, we can say so
+      ; (let [next-month-same-day-or-eom (or ...)
+      ;  march 5 +
+      ;  march 31 +
+      )

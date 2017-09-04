@@ -8,6 +8,6 @@ To prepare for Explore DDD, I need to:
 4. Same day next month example.
 
 Protocols-oriented TODO
-1. Flatten relation-bounded intervals.
-2. redo place-value function
-3.
+1. Flatten relation-bounded intervals.DONE
+2. redo place-value function DONE
+3. redo map to-nesting DONE

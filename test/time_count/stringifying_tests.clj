@@ -1,8 +1,8 @@
 (ns time-count.stringifying-tests
-  (:require [time-count.core :refer [->RelationBoundedInterval map->RelationBoundedInterval]]
+  (:require [midje.sweet :refer :all]
+            [time-count.core :refer [->RelationBoundedInterval map->RelationBoundedInterval]]
             [time-count.iso8601 :refer :all]
-            [time-count.metajoda :refer [->MetaJodaTime]]
-            [midje.sweet :refer :all])
+            [time-count.metajoda :refer [->MetaJodaTime]])
   (:import [org.joda.time DateTime]))
 
 
@@ -35,13 +35,13 @@
            (->MetaJodaTime (DateTime. 2017 5 17 0 0 0 0) [:day :month :year]))
 
       (to-iso (->RelationBoundedInterval
-                    (->MetaJodaTime (DateTime. 2017 5 15 0 0 0 0) [:day :month :year])
-                    (->MetaJodaTime (DateTime. 2017 5 17 0 0 0 0) [:day :month :year])))
+                (->MetaJodaTime (DateTime. 2017 5 15 0 0 0 0) [:day :month :year])
+                (->MetaJodaTime (DateTime. 2017 5 17 0 0 0 0) [:day :month :year])))
       => "2017-05-15/2017-05-17")
 
 (fact "ISO 8601 doesn't seem to have a one-sided interval format. We use - to indicate a missing bound."
       (from-iso-to-relation-bounded-interval "2017-05-15/-")
-      => (map->RelationBoundedInterval {:starts   (->MetaJodaTime (DateTime. 2017 5 15 0 0 0 0) [:day :month :year])})
+      => (map->RelationBoundedInterval {:starts (->MetaJodaTime (DateTime. 2017 5 15 0 0 0 0) [:day :month :year])})
       (from-iso-to-relation-bounded-interval "-/2017-05-17")
       => (map->RelationBoundedInterval {:finishes (->MetaJodaTime (DateTime. 2017 5 17 0 0 0 0) [:day :month :year])})
       (to-iso (map->RelationBoundedInterval {:starts (->MetaJodaTime (DateTime. 2017 5 15 0 0 0 0) [:day :month :year])}))

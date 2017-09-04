@@ -1,20 +1,20 @@
 (ns time-count.timezone-sandbox
-  (:require [time-count.iso-8601-old :refer [formatter-for-pattern]])
+ ; (:require [time-count.iso8601-old :refer [formatter-for-pattern]])
   (:import [org.joda.time DateTime Minutes LocalDateTime DateTimeZone]
            [org.joda.time.format DateTimeFormat]))
 
 
-(def isoFormat (-> "yyyy-MM-dd'T'HH:mm" formatter-for-pattern .withOffsetParsed))
+;(def isoFormat (-> "yyyy-MM-dd'T'HH:mm" formatter-for-pattern .withOffsetParsed))
 
-(def tzFormat (-> "yyyy-MM-dd'T'HH:mmZ" formatter-for-pattern .withOffsetParsed))
+;(def tzFormat (-> "yyyy-MM-dd'T'HH:mmZ" formatter-for-pattern .withOffsetParsed))
 
+(comment "Working with time-zones and non-timezones"
+         (defn basic-parse [t-string]
+           (.parseDateTime isoFormat t-string))
 
-(defn basic-parse [t-string]
-  (.parseDateTime isoFormat t-string))
-
-(defn no-tz-parse [t-string]
-  (.parseDateTime isoFormat (str t-string "Z")))
-
+         (defn no-tz-parse [t-string]
+           (.parseDateTime isoFormat (str t-string "Z")))
+         )
 ;; new LocalDateTime(timestamp.getTime()).toDateTime(DateTimeZone.UTC);
 
 ;; new LocalDateTime("1946-04-14", dtz)

@@ -1,11 +1,9 @@
 (ns time-count.metajoda
-  (:require [time-count.core :refer :all] ;[SequenceTime next-interval Interval ->RelationBoundedInterval]]
-            [time-count.iso8601 :refer :all]
-            [time-count.meta-joda :refer [scale-to-Period]]
-    ; [time-count.time-count :refer [nested-first nested-last]]
-            [time-count.allens-interval-algebra :refer [relation-mj]])
+  (:require [time-count.core :refer :all]                   ;[SequenceTime next-interval Interval ->RelationBoundedInterval]]
+            [time-count.iso8601 :refer :all])               ;TODO REMOVE
 
-  (:import [org.joda.time DateTime]
+  (:import [org.joda.time DateTime
+                          Years Months Weeks Days Hours Minutes Seconds]
            [org.joda.time.format DateTimeFormat]))
 
 
@@ -15,6 +13,14 @@
 ;; TODO Replace time-count require with new stuff here.
 ;; TODO Replace allens-interval-algebra require with new stuff somewhere.
 ;; TODO Add namespaced keywords to core.
+
+(def scale-to-Period
+  {:year   (Years/years 1)
+   :month  (Months/months 1)
+   :day    (Days/days 1)
+   :hour   (Hours/hours 1)
+   :week   (Weeks/weeks 1)
+   :minute (Minutes/minutes 1)})
 
 (def joda-Property-for-nesting
   "These Property objects give access to JodaTime's logic of how scales fit together."
@@ -41,6 +47,23 @@
     {:dt      (-> dt nesting-fn .withMaximumValue)
      :nesting (cons nested-scale nesting)}))
 
+(defn- nesting-pairs [nesting]
+    (concat
+      (map vector nesting (rest nesting))
+      [[(last nesting)]]))
+
+(defn- place-value-for-pair [t scale-pair]
+  (-> (:dt t) ((joda-Property-for-nesting scale-pair)) .get))
+
+(def mapable-nestings
+  [#{[:day :month :year]
+     [:day :year]
+     [:day :week :week-year]}
+   #{}])
+
+(defn mapable? [nesting1 nesting2]
+  (some #(every? % [nesting1 nesting2]) mapable-nestings))
+
 
 (defrecord MetaJodaTime [^DateTime dt nesting]
 
@@ -60,10 +83,9 @@
     (let [{dts :dt n :nesting} (nested-first t scale)
           {dtf :dt} (nested-last t scale)]
 
-    (->RelationBoundedInterval
-      (MetaJodaTime. dts n)
-      (MetaJodaTime. dtf n)
-      )))
+      (->RelationBoundedInterval
+        (MetaJodaTime. dts n)
+        (MetaJodaTime. dtf n))))
 
   (enclosing-immediate [t]
     ;Clearing insignificant places: JodaTime has a millisecond representation, whatever the scale in meta-joda.
@@ -73,6 +95,13 @@
     (let [{dt-with-insignificant-places-cleared :dt} (nested-first {:dt dt :nesting (rest nesting)} (first nesting))]
       (MetaJodaTime. dt-with-insignificant-places-cleared (rest nesting))))
 
+  (place-values [t]
+    (map #(vector (first %) (place-value-for-pair t %)) (nesting-pairs nesting)))
+
+  (to-nesting [t scales]
+    (if (mapable? nesting scales)
+      (assoc t :nesting scales)
+      :no-mapping))
 
   ISO8601Mappable
 
@@ -95,6 +124,29 @@
   (from-iso-sequence-time [time-string]
     ((-> time-string time-string-pattern iso-parser) time-string)))
 
+(defn nesting-from-place-values [place-vals]
+  (map first place-vals))
+
+(defn- nesting-pairs-with-vals [place-vals]
+  (let [pairs (nesting-pairs (nesting-from-place-values place-vals))
+        vals (map second place-vals)]
+    (map #(assoc {} :pair %1 :val %2) pairs vals)))
+
+(defn- set-place-vals-on-mjt [dt rev-place-val-pairs]
+  (if (empty? rev-place-val-pairs)
+    dt
+    (let [pair (-> rev-place-val-pairs first :pair)
+          val (-> rev-place-val-pairs first :val)
+          p (joda-Property-for-nesting pair)
+          reset-dt (.setCopy (p dt) val)]
+      (recur reset-dt (rest rev-place-val-pairs)))))
+
+(defn to-MetaJodaTime [place-vals]
+  (MetaJodaTime.
+    (set-place-vals-on-mjt
+      (DateTime. 1970, 1, 1, 0, 0, 0, 0)
+      (-> place-vals nesting-pairs-with-vals reverse))
+    (nesting-from-place-values place-vals)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Allen's Interval Algebra  ;;;
@@ -135,3 +187,11 @@
 
         :else :TBD)
       )))
+
+
+
+;(defn scale-pairs)
+;(defn place-value [scale [^DateTime date & nesting]]
+;  {:pre [(some #{scale} nesting)]}
+;  (let [scale-pair (->> nesting (drop-while #(not (= scale %))) (take 2))]
+;    (-> date ((apply nesting-fns scale-pair)) .get)))
