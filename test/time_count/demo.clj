@@ -1,6 +1,6 @@
 (ns time-count.demo
   (:require [time-count.core :refer :all]
-            [time-count.iso8601 :refer [to-iso from-iso t->]]
+            [time-count.iso8601 :refer [to-iso from-iso t-> t->>]]
             [time-count.metajoda :refer [->MetaJodaTime]]
             [midje.sweet :refer :all])
   (:import [org.joda.time DateTime]))
@@ -120,59 +120,79 @@
           (overdue? (net-30-eom work-completion) t2) => truthy)))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Building up functions and then deriving holidays ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(comment "holidays examples"
-         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-         ;; Building up functions and then deriving holidays ;;
-         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn day-of-week [ymd]
+(-> ymd
+    (to-nesting [:day :week :week-year])
+    place-values
+    (#(into {} %))
+    :day))
 
-         (defn day-of-week [ymd]
-           (-> ymd
-               ((to-nesting [:day :week :week-year]))
-               (#(place-value :day %))))
+(defn thursday? [ymd]
+  (-> ymd
+      day-of-week
+      (= 4)))
 
-         (defn thursday? [ymd]
-           (= 4 (day-of-week ymd)))
+(defn november [year]
+  (-> year
+      (nest :month)
+      t-sequence
+      (nth 10)))
 
-         (defn november [year]
-           (-> year
-               ((nested-seq :month))
-               (nth 10)))
+(defn thanksgiving-us [year]
+  (-> year
+      november
+      (nest :day)
+      t-sequence
+      (#(filter thursday? %))
+      (nth 3)))
 
-         (defn thanksgiving-us [year]
-           (-> year
-               november
-               ((nested-seq :day))
-               (#(filter thursday? %))
-               (nth 3)))
+(fact "US Thanksgiving is 4th Thursday in November"
+      (t-> "2017" thanksgiving-us) => "2017-11-23"
+      (t-> "2018" thanksgiving-us) => "2018-11-22"
+      (t->> "2017"
+            (#(t-sequence {:starts %})) ;seq of years
+            (map thanksgiving-us) ;seq of Thanksgivings
+            (take 3)) => ["2017-11-23" "2018-11-22" "2019-11-28"])
 
-         (fact "US Thanksgiving is 4th Thursday in November"
-               (t-> "2017" thanksgiving-us) => "2017-11-23"
-               (t-> "2018" thanksgiving-us) => "2018-11-22"
-               (t->> "2017" interval-seq
-                     (map thanksgiving-us)
-                     (take 2))
-               => ["2017-11-23" "2018-11-22"])
 
-         ;;;;
+(defn monday? [ymd]
+  (-> ymd
+      day-of-week
+      (= 1)))
 
-         (defn monday? [ymd]
-           (= 1 (day-of-week ymd)))
+(defn may [year]
+  (-> year
+      (nest :month)
+      t-sequence
+      (nth 4)))
 
-         (defn may [year]
-           (-> year
-               ((nested-seq :month))
-               (nth 4)))
+(defn memorial-day-us [year]
+  (-> year
+      may
+      (nest :day)
+      t-sequence
+      (#(filter monday? %))
+      last))
 
-         (defn memorial-day-us [year]
-           (-> year
-               may
-               ((nested-seq :day))
-               (#(filter monday? %))
-               last))
+(fact "US Memorial Day is the last Monday in May"
+      (t-> "2017" memorial-day-us) => "2017-05-29"
+      (t-> "2018" memorial-day-us) => "2018-05-28")
 
-         (fact "US Memorial Day is the last Monday in May"
-               (t-> "2017" memorial-day-us) => "2017-05-29"
-               (t-> "2018" memorial-day-us) => "2018-05-28")
 
-         )
+;; Equivalent of dt plus period
+;; razors edge
+;;
+
+(defn nth-or-last [rbi n]
+  (
+  )
+
+(defn plus [t [scale n]]
+            (-> t (enclosing scale)
+                (#(t-sequence {:starts %}))
+                (nth n)))
+
