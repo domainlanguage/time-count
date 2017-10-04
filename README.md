@@ -1,7 +1,7 @@
 # time-count
 
 Most current programming libraries for time calculations are based on essentially the same model,
-        JodaTime (now Java Time in Java 9) being one of the better examples.
+        JodaTime (now java.time in Java 8 and later) being one of the better examples.
 Core concepts include instants, intervals, periods, and a few other concepts. Time values are wrappers
         around a Unix Time (a number of milliseconds since January 1970).
 Chronologies are configurable in principle, but this doesn't usually happen
@@ -9,8 +9,8 @@ Chronologies are configurable in principle, but this doesn't usually happen
 Time Count is intended as an exploration of alternative ways of thinking about
 time for business software. It is NOT currently suited for use in production code.
 
-See files /string-time/test/time_count/demo.clj
-and /string-time/test/time_count/explainer.clj
+See files /time-count/test/time_count/demo.clj
+and /time-count/test/time_count/explainer.clj
 for illustrations in code.
 
 
@@ -42,7 +42,7 @@ A sequence of intervals can be nested within an interval of a larger "scale".
 E.g. Days are nested within months. Months are nested within years.
 
 ### Bidirectional String representation (mostly ISO 8601)
-Having a string representation of a time is not just display formatting issue.
+Having a string representation of a time is first-class concern, not just display formatting issue.
 In time-count there is a string representation of every value, with bidirectional
 operations to convert between the string and any other representation used in computations.
 time-count uses ISO 8601, whenever there is a suitable representation,
@@ -60,7 +60,7 @@ E.g. How many days are in February in 2017? When does New York switch to Dayligh
 ## UP NEXT
 1. Change metajoda to use localtime until timezone handled right(?)
 2. Finish basic readme.md
-3. Rename repo to 'time-count'
+3. Rename repo to 'time-count' DONE
 4. Make repo public
 5. Basic timezone and daylight savings time cases.
 6. Same day next month example.
