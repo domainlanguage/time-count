@@ -3,12 +3,12 @@
             [time-count.iso8601 :refer [to-iso from-iso t-> t->>]]
             [time-count.metajoda :refer [->MetaJodaTime]]
             [midje.sweet :refer :all])
-  (:import [org.joda.time DateTime]))
+  (:import [org.joda.time LocalDateTime]))
 
 
 (fact "Time representation needs metadata representing nested scale"
-      (-> "2017-04-09" from-iso) => (->MetaJodaTime (DateTime. 2017 4 9 0 0 0 0) [:day :month :year])
-      (to-iso (->MetaJodaTime (DateTime. 2017 4 9 0 0 0 0) [:day :month :year])) => "2017-04-09"
+      (-> "2017-04-09" from-iso) => (->MetaJodaTime (LocalDateTime. 2017 4 9 0 0 0 0) [:day :month :year])
+      (to-iso (->MetaJodaTime (LocalDateTime. 2017 4 9 0 0 0 0) [:day :month :year])) => "2017-04-09"
       (-> "2017-04-09T11:17" from-iso :nesting) => [:minute :hour :day :month :year]
       (-> "2017-04" from-iso :nesting) => [:month :year])
 
