@@ -2,7 +2,7 @@
   (:require [time-count.core :refer :all]                   ;[SequenceTime next-interval Interval ->RelationBoundedInterval]]
             [time-count.iso8601 :refer :all])               ;TODO REMOVE
 
-  (:import [org.joda.time LocalDateTime
+  (:import [org.joda.time LocalDateTime DateTimeZone
                           Years Months Weeks Days Hours Minutes Seconds]
            [org.joda.time.format DateTimeFormat]))
 
@@ -24,33 +24,33 @@
 
 (def joda-Property-for-nesting
   "These Property objects give access to JodaTime's logic of how scales fit together."
-  {[:month :year]     (fn [^LocalDateTime dt] (.monthOfYear dt))
-   [:day :month]      (fn [^LocalDateTime dt] (.dayOfMonth dt))
-   [:hour :day]       (fn [^LocalDateTime dt] (.hourOfDay dt))
-   [:minute :hour]    (fn [^LocalDateTime dt] (.minuteOfHour dt))
-   [:day :year]       (fn [^LocalDateTime dt] (.dayOfYear dt))
-   [:week :week-year] (fn [^LocalDateTime dt] (.weekOfWeekyear dt))
-   [:day :week]       (fn [^LocalDateTime dt] (.dayOfWeek dt))
-   [:year]            (fn [^LocalDateTime dt] (.year dt))
-   [:week-year]       (fn [^LocalDateTime dt] (.weekyear dt))})
+  {[:month :year]     (fn [dt] (.monthOfYear dt))
+   [:day :month]      (fn [dt] (.dayOfMonth dt))
+   [:hour :day]       (fn [dt] (.hourOfDay dt))
+   [:minute :hour]    (fn [dt] (.minuteOfHour dt))
+   [:day :year]       (fn [dt] (.dayOfYear dt))
+   [:week :week-year] (fn [dt] (.weekOfWeekyear dt))
+   [:day :week]       (fn [dt] (.dayOfWeek dt))
+   [:year]            (fn [dt] (.year dt))
+   [:week-year]       (fn [dt] (.weekyear dt))})
 
 
 (defn- nested-first
-  [{:keys [^LocalDateTime dt nesting]} nested-scale]
+  [{:keys [dt nesting]} nested-scale]
   (let [nesting-fn (joda-Property-for-nesting [nested-scale (first nesting)])]
     {:dt      (-> dt nesting-fn .withMinimumValue)
      :nesting (cons nested-scale nesting)}))
 
 (defn- nested-last
-  [{:keys [^LocalDateTime dt nesting]} nested-scale]
+  [{:keys [dt nesting]} nested-scale]
   (let [nesting-fn (joda-Property-for-nesting [nested-scale (first nesting)])]
     {:dt      (-> dt nesting-fn .withMaximumValue)
      :nesting (cons nested-scale nesting)}))
 
 (defn- nesting-pairs [nesting]
-    (concat
-      (map vector nesting (rest nesting))
-      [[(last nesting)]]))
+  (concat
+    (map vector nesting (rest nesting))
+    [[(last nesting)]]))
 
 (defn- place-value-for-pair [t scale-pair]
   (-> (:dt t) ((joda-Property-for-nesting scale-pair)) .get))
@@ -65,7 +65,7 @@
   (some #(every? % [nesting1 nesting2]) mapable-nestings))
 
 
-(defrecord MetaJodaTime [^LocalDateTime dt nesting]
+(defrecord MetaJodaTime [dt nesting]
 
   SequenceTime
 
@@ -106,23 +106,34 @@
   ISO8601Mappable
 
   (to-iso [t]
-    (.print (-> nesting nesting-to-pattern DateTimeFormat/forPattern) dt))
+    (if (= org.joda.time.LocalDateTime (type t))
+      (.print (-> nesting nesting-to-pattern DateTimeFormat/forPattern) dt)
+      (.print (-> nesting nesting-to-pattern (str "ZZ") DateTimeFormat/forPattern) dt))
+    )
   )
-
 
 (extend-type String
   ISO8601Pattern
   (iso-parser [pattern]
     (fn [time-string]
-      (MetaJodaTime.
-        (.parseLocalDateTime (-> pattern DateTimeFormat/forPattern .withOffsetParsed) time-string)
-        (pattern-to-nesting pattern)))))
+      (let [[t-str offset-str zone-id] (tz-split time-string)
+            t-unqualified (-> pattern
+                              DateTimeFormat/forPattern
+                              (.parseLocalDateTime t-str))
+            t-maybe-offset (if offset-str
+                             (let [[h m] (offset-parse offset-str)]
+                               (.toDateTime t-unqualified (DateTimeZone/forOffsetHoursMinutes h m)))
+                             t-unqualified)
+            t-maybe-zone (if zone-id
+                           (.toDateTime t-maybe-offset (DateTimeZone/forID zone-id))
+                           t-maybe-offset)]
+        (->MetaJodaTime t-maybe-zone (pattern-to-nesting pattern))))))
 
 
 (extend-type String
   ISO8601SequenceTime
   (from-iso-sequence-time [time-string]
-    ((-> time-string time-string-pattern iso-parser) time-string)))
+    ((-> time-string tz-split first time-string-pattern iso-parser) time-string)))
 
 (defn nesting-from-place-values [place-vals]
   (map first place-vals))
@@ -191,7 +202,7 @@
 
 
 ;(defn scale-pairs)
-;(defn place-value [scale [^LocalDateTime date & nesting]]
+;(defn place-value [scale [date & nesting]]
 ;  {:pre [(some #{scale} nesting)]}
 ;  (let [scale-pair (->> nesting (drop-while #(not (= scale %))) (take 2))]
 ;    (-> date ((apply nesting-fns scale-pair)) .get)))

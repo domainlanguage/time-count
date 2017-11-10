@@ -1,9 +1,29 @@
 (ns time-count.iso8601
   (:require [time-count.core :refer [map->RelationBoundedInterval]]
             [clojure.set :refer [map-invert]])
-  ;(:import [time_count.core SequenceTime])
   (:import (time_count.core RelationBoundedInterval))
   )
+
+(defn offset-parse [offset-string]
+  (let [[_ hh mm] (re-find #"([+-][0-9][0-9]):([0-9][0-9])" offset-string)]
+    [(Integer/parseInt hh) (Integer/parseInt mm)]))
+
+(defn tz-split
+  "Split an iso string into up to three parts: time, UTC-Offset, Zone-Id"
+  [iso-string]
+  ;if string contains "[" and "]", the inbetween is zone-id
+  (let [zone-id (second (re-find #"\[([a-zA-Z/_]*)\]" iso-string))
+        [beforeT afterT] (clojure.string/split iso-string #"T")
+        UTC-offset (re-find #"[-+][0-9][0-9]:[0-9][0-9]" (or afterT ""))
+        tod (re-find #"^[0-9:]+" (or afterT ""))
+        ;  tod (first (clojure.string/split (or afterT "") #"[+-]"))
+        unqualified-time (str beforeT (if tod (str "T" tod)))]
+    ;if string contains "-" or "+" after a "T", from there to end or to "[" is UTC-Offset.
+    (cond
+      zone-id [unqualified-time UTC-offset zone-id]
+      UTC-offset [unqualified-time UTC-offset]
+      :default [unqualified-time])))
+
 
 ;; String representation of time values is needed for
 ;;  - data interchange
@@ -18,16 +38,18 @@
 ;;  The official source: https://www.iso.org/iso-8601-date-and-time-format.html
 
 (defn time-string-pattern [time-string]
-  (cond
-    (re-matches #"\d\d\d\d" time-string) "yyyy"
-    (re-matches #"\d\d\d\d-\d\d" time-string) "yyyy-MM"
-    (re-matches #"\d\d\d\d-\d\d-\d\d" time-string) "yyyy-MM-dd"
-    (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d" time-string) "yyyy-MM-dd'T'HH"
-    (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d:\d\d" time-string) "yyyy-MM-dd'T'HH:mm"
-    (re-matches #"\d\d\d\d-\d\d\d" time-string) "yyyy-DDD"
-    (re-matches #"\d\d\d\d-W\d\d" time-string) "xxxx-'W'ww"
-    (re-matches #"\d\d\d\d-W\d\d-\d" time-string) "xxxx-'W'ww-e"
-    :else :NONE))
+  (let [[t offset zone] (tz-split time-string)]
+    (cond
+      (re-matches #"\d\d\d\d" t) "yyyy"
+      (re-matches #"\d\d\d\d-\d\d" t) "yyyy-MM"
+      (re-matches #"\d\d\d\d-\d\d-\d\d" t) "yyyy-MM-dd"
+      (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d" t) "yyyy-MM-dd'T'HH"
+      (re-matches #"\d\d\d\d-\d\d-\d\dT\d\d:\d\d" t) "yyyy-MM-dd'T'HH:mm"
+      (re-matches #"\d\d\d\d-\d\d\d" t) "yyyy-DDD"
+      (re-matches #"\d\d\d\d-W\d\d" t) "xxxx-'W'ww"
+      (re-matches #"\d\d\d\d-W\d\d-\d" t) "xxxx-'W'ww-e"
+      :else :NONE)
+    ))
 
 (defprotocol ISO8601Mappable
   (to-iso [t] "ISO 8601 string representation of the SequenceTime or other interval."))
@@ -42,23 +64,33 @@
   RelationBoundedInterval
   (to-iso [{:keys [starts finishes]}] (str (if starts (to-iso starts) "-") "/" (if finishes (to-iso finishes) "-"))))
 
+(defn split-relation-bounded-interval-iso
+  "Return two strings if rbi, otherwise just one."
+  [interval-string]
+  (->> interval-string
+       (re-matches #"([0-9W:T-]*\[[a-zA-Z/_]*\]|[0-9W:T-]*)/*([0-9W:T-]*\[[a-zA-Z/_]*\]|[0-9W:T-]*)")
+       rest
+       (remove empty?)))
+
+
 
 (defn from-iso-to-relation-bounded-interval
-  [interval-string]
-  (let [[iso-starts iso-finishes] (clojure.string/split interval-string #"/")]
-
-    (-> (#(if (not= "-" iso-starts)
-            {:starts (from-iso-sequence-time iso-starts)}
-            {}))
-        (#(if (not= "-" iso-finishes)
-            (assoc % :finishes (from-iso-sequence-time iso-finishes))
-            %))
-        map->RelationBoundedInterval)))
+  [iso-starts iso-finishes]
+  (-> (#(if (not= "-" iso-starts)
+          {:starts (from-iso-sequence-time iso-starts)}
+          {}))
+      (#(if (not= "-" iso-finishes)
+          (assoc % :finishes (from-iso-sequence-time iso-finishes))
+          %))
+      map->RelationBoundedInterval))
 
 (defn from-iso [iso-string]
-  (if (clojure.string/includes? iso-string "/")
-    (from-iso-to-relation-bounded-interval iso-string)
-    (from-iso-sequence-time iso-string)))
+  (let [[a b] (split-relation-bounded-interval-iso iso-string)]
+ ;   (println "from-iso a b " a b)
+
+    (if b
+      (from-iso-to-relation-bounded-interval a b)
+      (from-iso-sequence-time a))))
 
 
 
