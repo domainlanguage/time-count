@@ -1,8 +1,7 @@
 (ns time-count.iso8601
   (:require [time-count.core :refer [map->RelationBoundedInterval]]
             [clojure.set :refer [map-invert]])
-  (:import (time_count.core RelationBoundedInterval))
-  )
+  (:import (time_count.core RelationBoundedInterval)))
 
 (defn offset-parse [offset-string]
   (let [[_ hh mm] (re-find #"([+-][0-9][0-9]):([0-9][0-9])" offset-string)]

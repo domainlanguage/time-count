@@ -109,3 +109,9 @@
       => ["2017-10-31T20:00-05:00[America/New_York]" "-"]
       (split-relation-bounded-interval-iso "-/2017-10-31T20:00-05:00[America/New_York]")
       => ["-" "2017-10-31T20:00-05:00[America/New_York]"])
+
+(fact "Any iso representation should round-trip convert to and from other representations"
+      (t-> "2017-11-15T20") => "2017-11-15T20"
+      (t-> "2017-11-15T20:00") => "2017-11-15T20:00"
+      (t-> "2017-11-15T20:00-05:00") => "2017-11-15T20:00-05:00"
+      (t-> "2017-11-15T20:00-05:00[America/New_York]") => "2017-11-15T20:00-05:00[America/New_York]")

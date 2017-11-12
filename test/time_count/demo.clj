@@ -30,6 +30,19 @@
       (t-> "2017-365" next-interval) => "2018-001"
       (t-> "2017-W52" next-interval) => "2018-W01")
 
+(fact "Each UTC offset and timezone is a distinct sequence."
+      (t-> "2017-04-09T11:17" next-interval) => "2017-04-09T11:18"
+      (t-> "2017-04-09T11:17-04:00" next-interval) => "2017-04-09T11:18-04:00"
+      (t-> "2017-04-09T11:17-04:00[America/New_York]" next-interval) => "2017-04-09T11:18-04:00[America/New_York]")
+
+(fact "Daylight savings time shifts are part of some sequences."
+      (t-> "2017-11-05T01:59-04:00[America/New_York]" next-interval) => "2017-11-05T01:00-05:00[America/New_York]"
+      (t-> "2017-11-05T01-04:00[America/New_York]" next-interval) => "2017-11-05T01-05:00[America/New_York]")
+      ;TODO Does this make sense? Or should timezone not be for dates?
+      ;(t-> "2017-11-05T-04:00[America/New_York]" next-interval) => "2017-11-05T-05:00[America/New_York]"
+
+
+
 (fact "A sequence can be nested within an interval of a larger scale"
       (t-> "2017-04" (nest :day) t-sequence count) => 30
       (t-> "2017" (nest :day) t-sequence count) => 365

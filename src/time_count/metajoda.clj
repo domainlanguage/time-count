@@ -106,103 +106,106 @@
   ISO8601Mappable
 
   (to-iso [t]
-    (if (= org.joda.time.LocalDateTime (type t))
+    (if (= org.joda.time.LocalDateTime (type dt))
       (.print (-> nesting nesting-to-pattern DateTimeFormat/forPattern) dt)
-      (.print (-> nesting nesting-to-pattern (str "ZZ") DateTimeFormat/forPattern) dt))
-    )
-  )
+      (str
+        (.print (-> nesting nesting-to-pattern (str "ZZ") DateTimeFormat/forPattern) dt)
+        (let [zone (.getZone dt)]
+          (if (= org.joda.time.tz.CachedDateTimeZone (type zone)) (str "[" zone "]"))))))
 
-(extend-type String
-  ISO8601Pattern
-  (iso-parser [pattern]
-    (fn [time-string]
-      (let [[t-str offset-str zone-id] (tz-split time-string)
-            t-unqualified (-> pattern
-                              DateTimeFormat/forPattern
-                              (.parseLocalDateTime t-str))
-            t-maybe-offset (if offset-str
-                             (let [[h m] (offset-parse offset-str)]
-                               (.toDateTime t-unqualified (DateTimeZone/forOffsetHoursMinutes h m)))
-                             t-unqualified)
-            t-maybe-zone (if zone-id
-                           (.toDateTime t-maybe-offset (DateTimeZone/forID zone-id))
-                           t-maybe-offset)]
-        (->MetaJodaTime t-maybe-zone (pattern-to-nesting pattern))))))
+  ) ;end defrecord
 
-
-(extend-type String
-  ISO8601SequenceTime
-  (from-iso-sequence-time [time-string]
-    ((-> time-string tz-split first time-string-pattern iso-parser) time-string)))
-
-(defn nesting-from-place-values [place-vals]
-  (map first place-vals))
-
-(defn- nesting-pairs-with-vals [place-vals]
-  (let [pairs (nesting-pairs (nesting-from-place-values place-vals))
-        vals (map second place-vals)]
-    (map #(assoc {} :pair %1 :val %2) pairs vals)))
-
-(defn- set-place-vals-on-mjt [dt rev-place-val-pairs]
-  (if (empty? rev-place-val-pairs)
-    dt
-    (let [pair (-> rev-place-val-pairs first :pair)
-          val (-> rev-place-val-pairs first :val)
-          p (joda-Property-for-nesting pair)
-          reset-dt (.setCopy (p dt) val)]
-      (recur reset-dt (rest rev-place-val-pairs)))))
-
-(defn to-MetaJodaTime [place-vals]
-  (MetaJodaTime.
-    (set-place-vals-on-mjt
-      (LocalDateTime. 1970, 1, 1, 0, 0, 0, 0)
-      (-> place-vals nesting-pairs-with-vals reverse))
-    (nesting-from-place-values place-vals)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;  Allen's Interval Algebra  ;;;
-;;;  Basic relations           ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(extend-protocol Interval
-  MetaJodaTime
-  (relation [{dt-a :dt :as a} {dt-b :dt :as b}]
-    (let [a-left dt-a
-          {a-right :dt} (next-interval a)
-          b-left dt-b
-          {b-right :dt} (next-interval b)]
-      (cond
-        (and (.isEqual a-left b-left)
-             (.isEqual a-right b-right)) :equal
-        (.isBefore a-right b-left) :before
-        (.isAfter a-left b-right) :after
-        (.isEqual a-right b-left) :meets
-        (.isEqual b-right a-left) :met-by
-        (and (.isEqual a-left b-left)
-             (.isBefore a-right b-right)) :starts
-        (and (.isEqual a-left b-left)
-             (.isAfter a-right b-right)) :started-by
-        (and (.isEqual a-right b-right)
-             (.isAfter a-left b-left)) :finishes
-        (and (.isEqual a-right b-right)
-             (.isBefore a-left b-left)) :finished-by
-        (and (.isAfter a-left b-left)
-             (.isBefore a-right b-right)) :during
-        (and (.isBefore a-left b-left)
-             (.isAfter a-right b-right)) :contains
-        (and (.isBefore a-left b-left)
-             (.isBefore a-right b-right)
-             (.isAfter a-right b-left)) :overlaps
-        (and (.isBefore b-left a-left)
-             (.isBefore b-right a-right)
-             (.isAfter b-right a-left)) :overlapped-by
-
-        :else :TBD)
-      )))
+  (extend-type String
+    ISO8601Pattern
+    (iso-parser [pattern]
+      (fn [time-string]
+        (let [[t-str offset-str zone-id] (tz-split time-string)
+              t-unqualified (-> pattern
+                                DateTimeFormat/forPattern
+                                (.parseLocalDateTime t-str))
+              t-maybe-offset (if offset-str
+                               (let [[h m] (offset-parse offset-str)]
+                                 (.toDateTime t-unqualified (DateTimeZone/forOffsetHoursMinutes h m)))
+                               t-unqualified)
+              t-maybe-zone (if zone-id
+                             (.toDateTime t-maybe-offset (DateTimeZone/forID zone-id))
+                             t-maybe-offset)]
+          (->MetaJodaTime t-maybe-zone (pattern-to-nesting pattern))))))
 
 
+  (extend-type String
+    ISO8601SequenceTime
+    (from-iso-sequence-time [time-string]
+      ((-> time-string tz-split first time-string-pattern iso-parser) time-string)))
 
-;(defn scale-pairs)
-;(defn place-value [scale [date & nesting]]
-;  {:pre [(some #{scale} nesting)]}
-;  (let [scale-pair (->> nesting (drop-while #(not (= scale %))) (take 2))]
-;    (-> date ((apply nesting-fns scale-pair)) .get)))
+  (defn nesting-from-place-values [place-vals]
+    (map first place-vals))
+
+  (defn- nesting-pairs-with-vals [place-vals]
+    (let [pairs (nesting-pairs (nesting-from-place-values place-vals))
+          vals (map second place-vals)]
+      (map #(assoc {} :pair %1 :val %2) pairs vals)))
+
+  (defn- set-place-vals-on-mjt [dt rev-place-val-pairs]
+    (if (empty? rev-place-val-pairs)
+      dt
+      (let [pair (-> rev-place-val-pairs first :pair)
+            val (-> rev-place-val-pairs first :val)
+            p (joda-Property-for-nesting pair)
+            reset-dt (.setCopy (p dt) val)]
+        (recur reset-dt (rest rev-place-val-pairs)))))
+
+  (defn to-MetaJodaTime [place-vals]
+    (MetaJodaTime.
+      (set-place-vals-on-mjt
+        (LocalDateTime. 1970, 1, 1, 0, 0, 0, 0)
+        (-> place-vals nesting-pairs-with-vals reverse))
+      (nesting-from-place-values place-vals)))
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;  Allen's Interval Algebra  ;;;
+  ;;;  Basic relations           ;;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  (extend-protocol Interval
+    MetaJodaTime
+    (relation [{dt-a :dt :as a} {dt-b :dt :as b}]
+      (let [a-left dt-a
+            {a-right :dt} (next-interval a)
+            b-left dt-b
+            {b-right :dt} (next-interval b)]
+        (cond
+          (and (.isEqual a-left b-left)
+               (.isEqual a-right b-right)) :equal
+          (.isBefore a-right b-left) :before
+          (.isAfter a-left b-right) :after
+          (.isEqual a-right b-left) :meets
+          (.isEqual b-right a-left) :met-by
+          (and (.isEqual a-left b-left)
+               (.isBefore a-right b-right)) :starts
+          (and (.isEqual a-left b-left)
+               (.isAfter a-right b-right)) :started-by
+          (and (.isEqual a-right b-right)
+               (.isAfter a-left b-left)) :finishes
+          (and (.isEqual a-right b-right)
+               (.isBefore a-left b-left)) :finished-by
+          (and (.isAfter a-left b-left)
+               (.isBefore a-right b-right)) :during
+          (and (.isBefore a-left b-left)
+               (.isAfter a-right b-right)) :contains
+          (and (.isBefore a-left b-left)
+               (.isBefore a-right b-right)
+               (.isAfter a-right b-left)) :overlaps
+          (and (.isBefore b-left a-left)
+               (.isBefore b-right a-right)
+               (.isAfter b-right a-left)) :overlapped-by
+
+          :else :TBD)
+        )))
+
+
+
+  ;(defn scale-pairs)
+  ;(defn place-value [scale [date & nesting]]
+  ;  {:pre [(some #{scale} nesting)]}
+  ;  (let [scale-pair (->> nesting (drop-while #(not (= scale %))) (take 2))]
+  ;    (-> date ((apply nesting-fns scale-pair)) .get)))
