@@ -107,10 +107,14 @@
 
   (to-iso [t]
     (if (= org.joda.time.LocalDateTime (type dt))
-      (.print (-> nesting nesting-to-pattern DateTimeFormat/forPattern) dt)
-      (str
-        (.print (-> nesting nesting-to-pattern (str "ZZ") DateTimeFormat/forPattern) dt)
-        (let [zone (.getZone dt)]
+      (-> nesting nesting-to-pattern DateTimeFormat/forPattern (.print dt))
+      (let [p (nesting-to-pattern nesting)
+            pZ (if (clojure.string/includes? p "'T'") "ZZ" "'T'ZZ")
+            zone (.getZone dt)]
+        (str
+          (-> (str p pZ)
+              DateTimeFormat/forPattern
+              (.print dt))
           (if (= org.joda.time.tz.CachedDateTimeZone (type zone)) (str "[" zone "]"))))))
 
   ) ;end defrecord
