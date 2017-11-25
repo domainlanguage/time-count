@@ -1,19 +1,19 @@
 (ns time-count.relation-bounded-intervals
-  (:require [time-count.core :refer [relation SequenceTime map->RelationBoundedInterval]]))
+  (:require [time-count.core :refer [relation CountableTime map->RelationBoundedInterval]]))
 
 
 
 (defn flatten-starts [interval]
-  (if (or (satisfies? SequenceTime interval)
+  (if (or (satisfies? CountableTime interval)
           (nil? (:starts interval))
-          (satisfies? SequenceTime (:starts interval)))
+          (satisfies? CountableTime (:starts interval)))
     interval
     (recur (assoc interval :starts (-> interval :starts :starts)))))
 
 (defn flatten-finishes [interval]
-  (if (or (satisfies? SequenceTime interval)
+  (if (or (satisfies? CountableTime interval)
           (nil? (:finishes interval))
-          (satisfies? SequenceTime (:finishes interval)))
+          (satisfies? CountableTime (:finishes interval)))
     interval
     (recur (assoc interval :finishes (-> interval :finishes :finishes)))))
 

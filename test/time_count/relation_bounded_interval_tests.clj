@@ -7,7 +7,7 @@
 
 ; scale-unit interval
 ; (part of a sequence of intervals that meet).
-;  -next-interval
+;  -next-t
 ;  -interval-seq
 ;  -enclosing-immediate
 ;  -nested (scale)

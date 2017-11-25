@@ -51,13 +51,13 @@
     ))
 
 (defprotocol ISO8601Mappable
-  (to-iso [t] "ISO 8601 string representation of the SequenceTime or other interval."))
+  (to-iso [t] "ISO 8601 string representation of the CountableTime or other interval."))
 
 (defprotocol ISO8601Pattern
   (iso-parser [p] "Given an ISO 8601 pattern (as a string), return a function parses a timestring accordingly."))
 
-(defprotocol ISO8601SequenceTime
-  (from-iso-sequence-time [s] "Infer the pattern and parse the string accordingly into a SequenceTime"))
+(defprotocol ISO8601CountableTime
+  (from-iso-sequence-time [s] "Infer the pattern and parse the string accordingly into a CountableTime"))
 
 (extend-protocol ISO8601Mappable
   RelationBoundedInterval

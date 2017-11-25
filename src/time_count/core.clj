@@ -25,9 +25,9 @@
 (defprotocol Interval
   (relation [t1 t2] "Return one of Allen's 13 basic relations."))
 
-(defprotocol SequenceTime
-  (next-interval [t])
-  (prev-interval [t])
+(defprotocol CountableTime
+  (next-t [t])
+  (prev-t [t])
   (nest [t scale] "Relation-bounded interval equal to the given
                      Time interval, but nesting the given scales.")
   (enclosing-immediate [t] "Immediate enclosing-immediate interval.")
@@ -37,14 +37,14 @@
 (defn t-sequence [{:keys [starts finishes]}]
   ; :pre must contain starts. starts/finishes must have same nesting.
   (if finishes
-    (take-while #(#{:before :meets :equal} (relation % finishes)) (iterate next-interval starts))
-    (iterate next-interval starts)))
+    (take-while #(#{:before :meets :equal} (relation % finishes)) (iterate next-t starts))
+    (iterate next-t starts)))
 
 (defn t-rev-sequence [{:keys [starts finishes]}]
   ; :pre must contain finishes. starts/finishes must have same nesting.
   (if starts
-    (take-while #(#{:after :met-by :equal} (relation % starts)) (iterate prev-interval finishes))
-    (iterate next-interval finishes)))
+    (take-while #(#{:after :met-by :equal} (relation % starts)) (iterate prev-t finishes))
+    (iterate next-t finishes)))
 
 (defn enclosing
   ([{:keys [dt nesting] :as t} scale]
@@ -69,18 +69,18 @@
 ; => {:starts 2017-01-01 :finishes 2017-12-31}
 
 (def inverse-relation
-  {:equal :equal
-   :before :after
-   :after :before
-   :meets :met-by
-   :met-by :meets
-   :starts :started-by
-   :started-by :starts
-   :finishes :finished-by
-   :finished-by :finishes
-   :during :contains
-   :contains :during
-   :overlaps :overlapped-by
+  {:equal         :equal
+   :before        :after
+   :after         :before
+   :meets         :met-by
+   :met-by        :meets
+   :starts        :started-by
+   :started-by    :starts
+   :finishes      :finished-by
+   :finished-by   :finishes
+   :during        :contains
+   :contains      :during
+   :overlaps      :overlapped-by
    :overlapped-by :overlaps})
 
 (defrecord RelationBoundedInterval [starts finishes])
@@ -102,8 +102,7 @@
 
 (defn relation-rbi-st
   [{a :starts b :finishes} y]
-  :not-implemented-yet
-)
+  :not-implemented-yet)
 
 
 ;TODO Put the following in a different ns. allens_algebra or relation-bounded-interval?
@@ -111,7 +110,6 @@
   RelationBoundedInterval
   (relation [t1 t2]
     (cond
-      (satisfies? SequenceTime t2) (relation-rbi-st t1 t2)
-      :else (relation-rbi-rbi t1 t2))
-    ))
+      (satisfies? CountableTime t2) (relation-rbi-st t1 t2)
+      :else (relation-rbi-rbi t1 t2))))
 

@@ -10,9 +10,10 @@
       (t-> "2017-04-30" identity) => "2017-04-30")
 
 (fact "In time-count, there is no 'instant'. Only sequences of intervals."
-      (t-> "2017-04-09" next-interval) => "2017-04-10"
-      (t-> "2017-04" next-interval) => "2017-05"
-      (t->> "2017-04/-" t-sequence (take 3)) => ["2017-04" "2017-05" "2017-06"])
+      (t-> "2017-04-09" next-t) => "2017-04-10"
+      (t-> "2017-04" next-t) => "2017-05"
+      (t->> "2017-04/2017-06" t-sequence) => ["2017-04" "2017-05" "2017-06"]
+      (t->> "2017-04/-" t-sequence (take 4)) => ["2017-04" "2017-05" "2017-06" "2017-07"])
 
 (fact "Business rules involving time are expressed using Allen's Interval Algebra."
       (letfn [(invoice-overdue? [due-date as-of] (#{:after :met-by} (relation as-of due-date)))]
@@ -29,5 +30,5 @@
       => "2017-04-25")
 
 (future-fact "Daylight savings time"
-             (t-> "2016-11-06T01:59" next-interval)
+             (t-> "2016-11-06T01:59" next-t)
              => "?")

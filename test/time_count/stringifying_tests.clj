@@ -115,3 +115,6 @@
       (t-> "2017-11-15T20:00") => "2017-11-15T20:00"
       (t-> "2017-11-15T20:00-05:00") => "2017-11-15T20:00-05:00"
       (t-> "2017-11-15T20:00-05:00[America/New_York]") => "2017-11-15T20:00-05:00[America/New_York]")
+
+(fact "Maybe timezone is a suspect concept at date level or higher, but in this model, a day contains a nested sequence of hours, etc., so it has to be in a timezone."
+      (t-> "2017T-05:00") => "2017T-05:00")

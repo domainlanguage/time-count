@@ -20,26 +20,27 @@
 
 ;;Treating all times as intervals has some implications.
 (fact "An interval is part of a sequence, so next is meaningful"
-      (t-> "2017-04-09" next-interval) => "2017-04-10"
-      (t-> "2017-04" next-interval) => "2017-05"
-      (t-> "2017" next-interval) => "2018"
-      (t-> "2017-04-09T11:17" next-interval) => "2017-04-09T11:18"
-      (t-> "2017-02-28" next-interval) => "2017-03-01"
-      (t-> "2016-02-28" next-interval) => "2016-02-29"
-      (t-> "2017-070" next-interval) => "2017-071"
-      (t-> "2017-365" next-interval) => "2018-001"
-      (t-> "2017-W52" next-interval) => "2018-W01")
+      (t-> "2017-04-09" next-t) => "2017-04-10"
+      (t-> "2017-04" next-t) => "2017-05"
+      (t-> "2017" next-t) => "2018"
+      (t-> "2017-04-09T11:17" next-t) => "2017-04-09T11:18"
+      (t-> "2017-02-28" next-t) => "2017-03-01"
+      (t-> "2016-02-28" next-t) => "2016-02-29"
+      (t-> "2017-070" next-t) => "2017-071"
+      (t-> "2017-365" next-t) => "2018-001"
+      (t-> "2017-W52" next-t) => "2018-W01")
 
 (fact "Each UTC offset and timezone is a distinct sequence."
-      (t-> "2017-04-09T11:17" next-interval) => "2017-04-09T11:18"
-      (t-> "2017-04-09T11:17-04:00" next-interval) => "2017-04-09T11:18-04:00"
-      (t-> "2017-04-09T11:17-04:00[America/New_York]" next-interval) => "2017-04-09T11:18-04:00[America/New_York]")
+      (t-> "2017-04-09T11:17" next-t) => "2017-04-09T11:18"
+      (t-> "2017-04-09T11:17-04:00" next-t) => "2017-04-09T11:18-04:00"
+      (t-> "2017-04-09T11:17-04:00[America/New_York]" next-t) => "2017-04-09T11:18-04:00[America/New_York]")
 
 (fact "Daylight savings time shifts are part of some sequences."
-      (t-> "2017-11-05T01:59-04:00[America/New_York]" next-interval) => "2017-11-05T01:00-05:00[America/New_York]"
-      (t-> "2017-11-05T01-04:00[America/New_York]" next-interval) => "2017-11-05T01-05:00[America/New_York]")
+      (t-> "2017-11-05T01:59-04:00[America/New_York]" next-t) => "2017-11-05T01:00-05:00[America/New_York]"
+      (t-> "2017-11-05T01-04:00[America/New_York]" next-t) => "2017-11-05T01-05:00[America/New_York]"
+      (t-> "2017-11-05T01:59-04:00" next-t) => "2017-11-05T02:00-04:00")
       ;TODO Does this make sense? Or should timezone not be for dates?
-      ;(t-> "2017-11-05T-04:00[America/New_York]" next-interval) => "2017-11-05T-05:00[America/New_York]"
+      ;(t-> "2017-11-05T-04:00[America/New_York]" next-t) => "2017-11-05T-05:00[America/New_York]"
 
 
 
@@ -96,13 +97,13 @@
                (t-> "2017-W02" last-day) => "2017-W02-7"))
 
        (fact "End-of-month is a common business operation, composed of seq and nest ops."
-             (letfn [(eom [t] (-> t (enclosing :month) (nest :day) :finishes))]
+             (letfn [(eom [t] (-> t (enclosing :month) (nest :day) t-sequence last))]
                (t-> "2017-04-19" eom) => "2017-04-30"
                (t-> "2017-04" eom) => "2017-04-30"
                (t-> "2017-04-19T15:12" eom) => "2017-04-30"))
        ; A more complex eom could preserve nesting
        ; and find last interval of same scale, etc.
-\
+
        (fact "The operations we create can be composed into higher ones also.
               E.g. End-of-month (eom) is a compositon of last-day and some nesting ops.
               A project might create their own library based on their business rules."
@@ -156,7 +157,8 @@
   (-> year
       (nest :month)
       t-sequence
-      (nth 10)))
+      (nth 10))) ; sequences are zero based!
+;TODO alternative: make the sequence, place-values, filter :month 11
 
 (defn thanksgiving-us [year]
   (-> year
@@ -164,13 +166,14 @@
       (nest :day)
       t-sequence
       (#(filter thursday? %))
-      (nth 3)))
+      (nth 3))) ;sequences are zero based!!!
 
 (fact "US Thanksgiving is 4th Thursday in November"
       (t-> "2017" thanksgiving-us) => "2017-11-23"
       (t-> "2018" thanksgiving-us) => "2018-11-22"
-      (t->> "2017"
-            (#(t-sequence {:starts %}))                     ;seq of years
+      (t->> "2017/-"
+            t-sequence
+            ;TODO (#(t-sequence {:starts %}))                     ;seq of years
             (map thanksgiving-us)                           ;seq of Thanksgivings
             (take 3)) => ["2017-11-23" "2018-11-22" "2019-11-28"])
 
@@ -179,6 +182,33 @@
   (-> ymd
       day-of-week
       (= 1)))
+
+(defn may? [ymd]
+  (-> ymd
+      place-values
+      (#(into {} %))
+      :month
+      (= 5)))
+
+;TODO Make something like this work
+;(defn memorial-day2 [year]
+;  (-> year
+;      (nest :day :month)
+;      t-sequence
+;      (#(filter (every? may? monday?) %)
+;      last)
+
+(defn memorial-day2 [year]
+  (-> year
+      (nest :month)
+      t-sequence
+      (#(filter may? %))
+      first
+      (nest :day)
+      t-sequence
+      (#(filter monday? %))
+      last))
+
 
 (defn may [year]
   (-> year

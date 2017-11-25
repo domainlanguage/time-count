@@ -15,13 +15,13 @@
 
 (deftest stepping
   (is (= (->MetaJodaTime (LocalDateTime. 2017 1 11 0 0 0 0) [:day :month :year])
-         (next-interval (->MetaJodaTime (LocalDateTime. 2017 1 10 0 0 0 0) [:day :month :year]))))
+         (next-t (->MetaJodaTime (LocalDateTime. 2017 1 10 0 0 0 0) [:day :month :year]))))
   (is (= (->MetaJodaTime (LocalDateTime. 2017 1 1 0 0 0 0) [:day :month :year])
-         (next-interval (->MetaJodaTime (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year]))))
+         (next-t (->MetaJodaTime (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year]))))
   (is (= (->MetaJodaTime (LocalDateTime. 2017 1 10 0 0 0 0) [:day :month :year])
-         (prev-interval (->MetaJodaTime (LocalDateTime. 2017 1 11 0 0 0 0) [:day :month :year]))))
+         (prev-t (->MetaJodaTime (LocalDateTime. 2017 1 11 0 0 0 0) [:day :month :year]))))
   (is (= (->MetaJodaTime (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])
-         (prev-interval (->MetaJodaTime (LocalDateTime. 2017 1 1 0 0 0 0) [:day :month :year])))))
+         (prev-t (->MetaJodaTime (LocalDateTime. 2017 1 1 0 0 0 0) [:day :month :year])))))
 
 (deftest allens-relations
   (is (= :after

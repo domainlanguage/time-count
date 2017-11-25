@@ -85,7 +85,7 @@
 (defn last-enclosed [unit]
   #(last-sub-interval % unit))
 
-(defn next-interval [[^DateTime date & units]]
+(defn next-t [[^DateTime date & units]]
   (cons
     (.plus date (unit-to-Period (first units)))
     units))
@@ -100,7 +100,7 @@
   If there is no nested scale in the schema, return empty seq."
   ([unit meta-joda]
    (let [max-t (last-sub-interval meta-joda unit)]
-     (take-while #(not (after? % max-t)) (iterate next-interval (first-sub-interval meta-joda unit)))
+     (take-while #(not (after? % max-t)) (iterate next-t (first-sub-interval meta-joda unit)))
      ))
   ([unit]
    (partial seq-of unit)))
@@ -164,16 +164,16 @@
 
 (fact
   (-> [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
-      next-interval)
+      next-t)
   => [(DateTime. 2017 1 11 0 0 0 0) :day :month :year]
 
   ;  (-> [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
   ;      (containing-interval :month)
-  ;      next-interval)
+  ;      next-t)
   ;  => [(DateTime. 2017 2 1 0 0 0 0) :month :year] TODO
   (-> [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
       (enclosing-interval :month)
-      next-interval
+      next-t
       stringify)
   => "2017-02")
 
@@ -181,13 +181,13 @@
   (-> month-string
       ((destringifier "yyyy-MM-dd"))
       (#(enclosing-interval % :month))
-      next-interval
+      next-t
       stringify))
 
 (def next-month-str2
   (comp
     stringify
-    next-interval
+    next-t
     #(enclosing-interval % :month)
     (destringifier "yyyy-MM-dd")))
 
@@ -200,12 +200,12 @@
 (def next-month-str3
   (date-transform "yyyy-MM-dd"
                   enclosing-interval
-                  next-interval))
+                  next-t))
 
 (def end-of-next-month
   (date-transform "yyyy-MM-dd"
                   enclosing-interval
-                  next-interval
+                  next-t
                   (last-enclosed :day)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -215,7 +215,7 @@
 ; day 6 of 2017-01 = 2017-01-06
 
 (defn as-head-of-seq [meta-joda]
-  (iterate next-interval meta-joda))
+  (iterate next-t meta-joda))
 
 
 (defn nth-of

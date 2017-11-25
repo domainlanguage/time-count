@@ -8,7 +8,19 @@
 ;;Note: MetaJodaTime is used because we must have a concrete instance.
 ;; There is nothing specific here to the metajoda implementation.
 
-(fact "A relation-bounded interval defines a sequence of CountedTimes"
+;TODO tests of next-t and prev-t (move some from demo?)
+;TODO tests of nesting and enclosing (unwrapping?)
+;TODO maybe - put all CountableTimes in these test all in form of place-values
+
+(fact "A relation-bounded interval defines a sequence of CountableTimes"
+
+      (t-sequence (->RelationBoundedInterval
+                    (MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])
+                    (MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])))
+      => [(MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])
+          (MetaJodaTime. (LocalDateTime. 2017 1 1 0 0 0 0) [:day :month :year])
+          (MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])]
+
       (t-sequence {:starts   (MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])
                    :finishes (MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])})
       => [(MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])
@@ -19,22 +31,17 @@
                        :finishes (MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])})
       => [(MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])
           (MetaJodaTime. (LocalDateTime. 2017 1 1 0 0 0 0) [:day :month :year])
-          (MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])]
+          (MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])])
 
-      (t-sequence (->RelationBoundedInterval
-                    (MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])
-                    (MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])))
-      => [(MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])
-          (MetaJodaTime. (LocalDateTime. 2017 1 1 0 0 0 0) [:day :month :year])
-          (MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])])
 
-(fact "A SequenceTime nesting can be unwrapped"
+(fact "A CountableTime nesting can be unwrapped"
       (enclosing-immediate (MetaJodaTime. (LocalDateTime. 2017 8 20 0 0 0 0) [:day :month :year]))
       => (MetaJodaTime. (LocalDateTime. 2017 8 1 0 0 0 0) [:month :year])
       (enclosing
         (MetaJodaTime. (LocalDateTime. 2017 8 20 0 0 0 0) [:day :month :year])
         :year)
       => (MetaJodaTime. (LocalDateTime. 2017 1 1 0 0 0 0) [:year]))
+
 
 (facts "about place values"
        (fact "The time value could be represented as a map of place-values"
