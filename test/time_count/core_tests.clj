@@ -1,7 +1,7 @@
 (ns time-count.core-tests
   (:require [midje.sweet :refer :all]
             [time-count.core :refer :all]
-            [time-count.metajoda :refer [to-MetaJodaTime]])
+            [time-count.metajoda :refer [from-place-values]])
   (:import [time_count.metajoda MetaJodaTime]
            [org.joda.time LocalDateTime]))
 
@@ -61,33 +61,33 @@
 
        (fact "Some nestings are mappable; most are not."
              (-> [[:day 25] [:month 4] [:year 2017]]
-                 to-MetaJodaTime
+                 from-place-values
                  (to-nesting [:day :year])
                  place-values)
              => [[:day 115] [:year 2017]]
 
              (-> [[:day 25] [:month 4] [:year 2017]]
-                 to-MetaJodaTime
+                 from-place-values
                  (to-nesting [:month :year]))
              => :no-mapping)
 
 
        (fact "Mapping is bidirectional"
              (-> [[:day 25] [:month 4] [:year 2017]]
-                 to-MetaJodaTime
+                 from-place-values
                  (to-nesting [:day :week :week-year])
                  place-values)
              => [[:day 2] [:week 17] [:week-year 2017]]
 
              (-> [[:day 2] [:week 17] [:week-year 2017]]
-                 to-MetaJodaTime
+                 from-place-values
                  (to-nesting [:day :month :year])
                  place-values)
              => [[:day 25] [:month 4] [:year 2017]])
 
        (fact "Even the top level of nesting must be mapped."
              (-> [[:day 1] [:month 1] [:year 2017]]
-                 to-MetaJodaTime
+                 from-place-values
                  (to-nesting [:day :week :week-year])
                  place-values)
              => [[:day 7] [:week 52] [:week-year 2016]]))

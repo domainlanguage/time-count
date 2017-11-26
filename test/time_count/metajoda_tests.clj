@@ -38,7 +38,7 @@
 (is (= "2017-01-11"
        (to-iso (->MetaJodaTime (LocalDateTime. 2017 1 11 0 0 0 0) [:day :month :year]))))
 (is (= (->MetaJodaTime (LocalDateTime. 2017 1 11 0 0 0 0) [:day :month :year])
-       (from-iso-sequence-time "2017-01-11")))
+       (from-iso-countable-time "2017-01-11")))
 
 ;; Place values TODO belongs in .core?
 (facts "about place values"
@@ -50,7 +50,7 @@
              => [[:day 28] [:month 2] [:year 2017]])
 
        (fact "Other representations can be created from place-values"
-             (to-MetaJodaTime [[:day 28] [:month 2] [:year 2017]])
+             (from-place-values [[:day 28] [:month 2] [:year 2017]])
              => (->MetaJodaTime (LocalDateTime. 2017 2 28 0 0 0 0) [:day :month :year])))
 
 (run-tests)

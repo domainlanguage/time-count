@@ -139,7 +139,7 @@
 
 (extend-type String
   ISO8601CountableTime
-  (from-iso-sequence-time [time-string]
+  (from-iso-countable-time [time-string]
     ((-> time-string tz-split first time-string-pattern iso-parser) time-string)))
 
 (defn nesting-from-place-values [place-vals]
@@ -159,7 +159,7 @@
           reset-dt (.setCopy (p dt) val)]
       (recur reset-dt (rest rev-place-val-pairs)))))
 
-(defn to-MetaJodaTime [place-vals]
+(defn from-place-values [place-vals]                        ; TODO Consider making place-values a record and PlaceValueMappable a protocol like ISO8601Mappable.
   (MetaJodaTime.
     (set-place-vals-on-mjt
       (LocalDateTime. 1970, 1, 1, 0, 0, 0, 0)

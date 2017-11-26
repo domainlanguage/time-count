@@ -57,7 +57,7 @@
   (iso-parser [p] "Given an ISO 8601 pattern (as a string), return a function parses a timestring accordingly."))
 
 (defprotocol ISO8601CountableTime
-  (from-iso-sequence-time [s] "Infer the pattern and parse the string accordingly into a CountableTime"))
+  (from-iso-countable-time [s] "Infer the pattern and parse the string accordingly into a CountableTime"))
 
 (extend-protocol ISO8601Mappable
   RelationBoundedInterval
@@ -76,20 +76,20 @@
 (defn from-iso-to-relation-bounded-interval
   [iso-starts iso-finishes]
   (-> (#(if (not= "-" iso-starts)
-          {:starts (from-iso-sequence-time iso-starts)}
+          {:starts (from-iso-countable-time iso-starts)}
           {}))
       (#(if (not= "-" iso-finishes)
-          (assoc % :finishes (from-iso-sequence-time iso-finishes))
+          (assoc % :finishes (from-iso-countable-time iso-finishes))
           %))
       map->RelationBoundedInterval))
 
 (defn from-iso [iso-string]
   (let [[a b] (split-relation-bounded-interval-iso iso-string)]
- ;   (println "from-iso a b " a b)
+    ;   (println "from-iso a b " a b)
 
     (if b
       (from-iso-to-relation-bounded-interval a b)
-      (from-iso-sequence-time a))))
+      (from-iso-countable-time a))))
 
 
 

@@ -23,9 +23,9 @@
       => (->MetaJodaTime (LocalDateTime. 2017 1 1 0 0 0 0) [:month :year])
       ((iso-parser "yyyy-MM-dd") "2017-01-10")
       => (->MetaJodaTime (LocalDateTime. 2017 1 10 0 0 0 0) [:day :month :year])
-      (from-iso-sequence-time "2017-01")
+      (from-iso-countable-time "2017-01")
       => (->MetaJodaTime (LocalDateTime. 2017 1 1 0 0 0 0) [:month :year])
-      (from-iso-sequence-time "2017-01-10")
+      (from-iso-countable-time "2017-01-10")
       => (->MetaJodaTime (LocalDateTime. 2017 1 10 0 0 0 0) [:day :month :year]))
 
 (fact "Relation bounded intervals can be represented as ISO"
@@ -74,7 +74,7 @@
       (tz-split "2017-10-31T20:00") => ["2017-10-31T20:00"]
       (tz-split "2017-10-31T20:00-05") => ["2017-10-31T20:00"] ;Valid ISO 8601, but INVALID time-count
       (tz-split "2017-10-31T20:00-05:00") => ["2017-10-31T20:00" "-05:00"]
-    ;;  (tz-split "2017-10-31T-05:00") => ["2017-10-31" "-05:00"]????  ;Invalid ISO 8601, but valid time-count???
+      ;;  (tz-split "2017-10-31T-05:00") => ["2017-10-31" "-05:00"]????  ;Invalid ISO 8601, but valid time-count???
       (tz-split "2017-10-31T20:00-05:00[America/New_York]") => ["2017-10-31T20:00" "-05:00" "America/New_York"]
       (tz-split "2017") => ["2017"]
       (tz-split "2017T-05:00") => ["2017" "-05:00"])
@@ -86,15 +86,14 @@
       => "2017-11-05T04:35")
 
 (fact "A string with an offset is represented as DateTime with offset"
-      (from-iso "2017-11-05T04:35-03:15") ;A weird mid-Atlantic offset for testing
+      (from-iso "2017-11-05T04:35-03:15")                   ;A weird mid-Atlantic offset for testing
       => (->MetaJodaTime (DateTime. 2017 11 5 4 35
-                    (DateTimeZone/forOffsetHoursMinutes -3 -15))
+                                    (DateTimeZone/forOffsetHoursMinutes -3 -15))
                          [:minute :hour :day :month :year])
       (to-iso (->MetaJodaTime (DateTime. 2017 11 5 4 35
                                          (DateTimeZone/forOffsetHoursMinutes -3 -15))
                               [:minute :hour :day :month :year]))
-      => "2017-11-05T04:35-03:15"
-      )
+      => "2017-11-05T04:35-03:15")
 
 (fact "The ends of a relation-bounded interval are separated by a slash."
       (split-relation-bounded-interval-iso "2017-10-31T20:00/2017-10-31T20:30")
