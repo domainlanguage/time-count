@@ -40,13 +40,46 @@
       (enclosing
         (MetaJodaTime. (LocalDateTime. 2017 8 20 0 0 0 0) [:day :month :year])
         :year)
-      => (MetaJodaTime. (LocalDateTime. 2017 1 1 0 0 0 0) [:year]))
+      => (MetaJodaTime. (LocalDateTime. 2017 1 1 0 0 0 0) [:year])
+      (enclosing
+        (MetaJodaTime. (LocalDateTime. 2017 8 20 0 0 0 0) [:day :month :year])
+        :day)
+      => (MetaJodaTime. (LocalDateTime. 2017 8 20 0 0 0 0) [:day :month :year])
+      (enclosing
+        (MetaJodaTime. (LocalDateTime. 2017 8 20 0 0 0 0) [:day :month :year])
+        :hour)
+      => nil)
 
 
 (facts "about place values"
-       (fact "The time value could be represented as a map of place-values"
+       (fact "A countable time value could be represented as a vector of place-values"
              (place-values (MetaJodaTime. (LocalDateTime. 2017 2 28 0 0 0 0) [:day :month :year]))
-             => [[:day 28] [:month 2] [:year 2017]]))
+             => [[:day 28] [:month 2] [:year 2017]]
+             (from-place-values [[:day 28] [:month 2] [:year 2017]])
+             => (MetaJodaTime. (LocalDateTime. 2017 2 28 0 0 0 0) [:day :month :year])))
+
+(facts "Unwrapping the nesting can be seen clearly in place values (TODO Consider implementing it using place-values)"
+       (-> [[:day 28] [:month 2] [:year 2017]]
+           from-place-values
+           enclosing-immediate
+           place-values)
+       => [[:month 2] [:year 2017]]
+       (-> [[:day 28] [:month 2] [:year 2017]]
+           from-place-values
+           (enclosing :year)
+           place-values)
+       => [[:year 2017]]
+       (-> [[:day 28] [:month 2] [:year 2017]]
+           from-place-values
+           (enclosing :day)
+           place-values)
+       => [[:day 28] [:month 2] [:year 2017]]
+       (-> [[:day 28] [:month 2] [:year 2017]]
+           from-place-values
+           (enclosing :hour)
+           place-values)
+       => [])
+
 
 (facts "about mapping between nestings"
        (fact "In JodaTime, you have to look at place values to see the change."

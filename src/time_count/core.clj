@@ -36,15 +36,17 @@
 
 (defn t-sequence [{:keys [starts finishes]}]
   ; :pre must contain starts. starts/finishes must have same nesting.
-  (if finishes
-    (take-while #(#{:before :meets :equal} (relation % finishes)) (iterate next-t starts))
-    (iterate next-t starts)))
+  (cond
+    (and starts finishes) (take-while #(#{:before :meets :equal} (relation % finishes)) (iterate next-t starts))
+    starts (iterate next-t starts)
+    :else nil))
 
 (defn t-rev-sequence [{:keys [starts finishes]}]
   ; :pre must contain finishes. starts/finishes must have same nesting.
-  (if starts
-    (take-while #(#{:after :met-by :equal} (relation % starts)) (iterate prev-t finishes))
-    (iterate next-t finishes)))
+  (cond
+    (and finishes starts) (take-while #(#{:after :met-by :equal} (relation % starts)) (iterate prev-t finishes))
+    finishes (iterate next-t finishes)
+    :else nil))
 
 (defn enclosing
   ([{:keys [dt nesting] :as t} scale]
@@ -52,6 +54,15 @@
      (-> nesting first (= scale)) t
      (-> nesting count (< 2)) nil
      :else (recur (enclosing-immediate t) scale))))
+
+(extend-type nil
+  CountableTime
+  (next-t [t] nil)
+  (prev-t [t] nil)
+  (nest [t scale] nil)
+  (enclosing-immediate [t] nil)
+  (place-values [t] [])
+  (to-nesting [t scales] nil))
 
 ; Sketching protocol ...
 

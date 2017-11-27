@@ -1,18 +1,11 @@
 (ns time-count.metajoda
   (:require [time-count.core :refer :all]                   ;[CountableTime next-t Interval ->RelationBoundedInterval]]
-            [time-count.iso8601 :refer :all])               ;TODO REMOVE
+            [time-count.iso8601 :refer :all])
 
   (:import [org.joda.time LocalDateTime DateTimeZone
                           Years Months Weeks Days Hours Minutes Seconds]
            [org.joda.time.format DateTimeFormat]))
 
-
-
-
-;; TODO Replace meta-joda require with new stuff in core
-;; TODO Replace time-count require with new stuff here.
-;; TODO Replace allens-interval-algebra require with new stuff somewhere.
-;; TODO Add namespaced keywords to core.
 
 (def scale-to-Period
   {:year   (Years/years 1)
@@ -37,13 +30,13 @@
 
 (defn- nested-first
   [{:keys [dt nesting]} nested-scale]
-  (let [nesting-fn (joda-Property-for-nesting [nested-scale (first nesting)])]
+  (if-let [nesting-fn (joda-Property-for-nesting [nested-scale (first nesting)])]
     {:dt      (-> dt nesting-fn .withMinimumValue)
      :nesting (cons nested-scale nesting)}))
 
 (defn- nested-last
   [{:keys [dt nesting]} nested-scale]
-  (let [nesting-fn (joda-Property-for-nesting [nested-scale (first nesting)])]
+  (if-let [nesting-fn (joda-Property-for-nesting [nested-scale (first nesting)])]
     {:dt      (-> dt nesting-fn .withMaximumValue)
      :nesting (cons nested-scale nesting)}))
 
@@ -82,10 +75,10 @@
   (nest [t scale]
     (let [{dts :dt n :nesting} (nested-first t scale)
           {dtf :dt} (nested-last t scale)]
-
-      (->RelationBoundedInterval
-        (MetaJodaTime. dts n)
-        (MetaJodaTime. dtf n))))
+      (if dts
+        (->RelationBoundedInterval
+          (MetaJodaTime. dts n)
+          (MetaJodaTime. dtf n)))))
 
   (enclosing-immediate [t]
     ;Clearing insignificant places: JodaTime has a millisecond representation, whatever the scale in meta-joda.
