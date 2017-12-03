@@ -144,9 +144,7 @@
 (defn day-of-week [ymd]
   (-> ymd
       (to-nesting [:day :week :week-year])
-      place-values
-      (#(into {} %))
-      :day))
+      (place-value :day)))
 
 (defn thursday? [ymd]
   (-> ymd
@@ -185,9 +183,7 @@
 
 (defn may? [ymd]
   (-> ymd
-      place-values
-      (#(into {} %))
-      :month
+      (place-value :month)
       (= 5)))
 
 ;TODO Make something like this work

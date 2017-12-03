@@ -56,7 +56,14 @@
              (place-values (MetaJodaTime. (LocalDateTime. 2017 2 28 0 0 0 0) [:day :month :year]))
              => [[:day 28] [:month 2] [:year 2017]]
              (from-place-values [[:day 28] [:month 2] [:year 2017]])
-             => (MetaJodaTime. (LocalDateTime. 2017 2 28 0 0 0 0) [:day :month :year])))
+             => (MetaJodaTime. (LocalDateTime. 2017 2 28 0 0 0 0) [:day :month :year]))
+       (fact
+         (-> (from-place-values [[:day 28] [:month 2] [:year 2017]])
+             (place-value :month))
+         => 2
+         (-> (from-place-values [[:day 28] [:month 2] [:year 2017]])
+             (place-value :hour))
+         => nil))
 
 (facts "Unwrapping the nesting can be seen clearly in place values (TODO Consider implementing it using place-values)"
        (-> [[:day 28] [:month 2] [:year 2017]]

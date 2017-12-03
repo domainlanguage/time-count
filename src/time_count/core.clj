@@ -55,6 +55,13 @@
      (-> nesting count (< 2)) nil
      :else (recur (enclosing-immediate t) scale))))
 
+(defn place-value
+  [t scale]
+  (-> t
+      place-values
+      (#(into {} %))
+      scale))
+
 (extend-type nil
   CountableTime
   (next-t [t] nil)
