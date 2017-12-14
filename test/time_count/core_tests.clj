@@ -31,6 +31,16 @@
                        :finishes (MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])})
       => [(MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])
           (MetaJodaTime. (LocalDateTime. 2017 1 1 0 0 0 0) [:day :month :year])
+          (MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])]
+
+      (take 3 (t-sequence {:starts   (MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])}))
+      => [(MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])
+          (MetaJodaTime. (LocalDateTime. 2017 1 1 0 0 0 0) [:day :month :year])
+          (MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])]
+
+      (take 3 (t-rev-sequence {:finishes (MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])}))
+      => [(MetaJodaTime. (LocalDateTime. 2017 1 2 0 0 0 0) [:day :month :year])
+          (MetaJodaTime. (LocalDateTime. 2017 1 1 0 0 0 0) [:day :month :year])
           (MetaJodaTime. (LocalDateTime. 2016 12 31 0 0 0 0) [:day :month :year])])
 
 

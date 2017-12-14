@@ -45,7 +45,7 @@
   ; :pre must contain finishes. starts/finishes must have same nesting.
   (cond
     (and finishes starts) (take-while #(#{:after :met-by :equal} (relation % starts)) (iterate prev-t finishes))
-    finishes (iterate next-t finishes)
+    finishes (iterate prev-t finishes)
     :else nil))
 
 (defn enclosing
