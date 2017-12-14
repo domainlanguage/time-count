@@ -94,7 +94,7 @@
 ;=> org.joda.time.LocalDateTime
 
 (-> "2017-11-05T00:59" LocalDateTime.
-        (.toDateTime (DateTimeZone/forID "America/New_York")))
+    (.toDateTime (DateTimeZone/forID "America/New_York")))
 ;=> #object[org.joda.time.DateTime 0x117b96ad "2017-11-05T00:59:00.000-04:00"]
 
 (-> "2017-11-05T02:01" LocalDateTime.
@@ -142,7 +142,7 @@
 
          (.parseDateTime (-> pattern DateTimeFormat/forPattern .withOffsetParsed) "2017-11-05T04:20+02")
 
-; ISODateTimeFormat.dateTimeParser()
+         ; ISODateTimeFormat.dateTimeParser()
 
          )
 

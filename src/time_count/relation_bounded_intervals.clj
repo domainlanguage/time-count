@@ -18,11 +18,11 @@
     (recur (assoc interval :finishes (-> interval :finishes :finishes)))))
 
 
-  (defn flatten-bounds
-    [interval]
-    (-> interval
-        flatten-starts
-        flatten-finishes))
+(defn flatten-bounds
+  [interval]
+  (-> interval
+      flatten-starts
+      flatten-finishes))
 
 
 ;; BELOW HERE, USES NEW

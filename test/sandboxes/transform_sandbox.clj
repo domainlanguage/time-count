@@ -254,10 +254,10 @@
       => [(DateTime. 2017 1 7 0 0 0 0) :day :month :year])
 
 (future-fact "Value of a particular scale can be extracted"
-      ((val-of :day) [(DateTime. 2017 4 15 0 0 0 0) :day :month :year])
-      => 15
-      ((val-of :month) [(DateTime. 2017 4 15 0 0 0 0) :day :month :year])
-      => 4)
+             ((val-of :day) [(DateTime. 2017 4 15 0 0 0 0) :day :month :year])
+             => 15
+             ((val-of :month) [(DateTime. 2017 4 15 0 0 0 0) :day :month :year])
+             => 4)
 
 (future-fact
   (nth-of :exact :day 6 [(DateTime. 2017 1 1 0 0 0 0) :month :year])
