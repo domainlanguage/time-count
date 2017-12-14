@@ -1,4 +1,4 @@
-(ns sandboxes.joda-timezone-sandbox
+(ns time-count.joda-timezone-sandbox
   (:require [time-count.iso8601 :refer :all]
             [time-count.metajoda :refer :all]
             [time-count.core :refer :all])

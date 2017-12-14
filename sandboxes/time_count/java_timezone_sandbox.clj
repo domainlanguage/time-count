@@ -1,4 +1,4 @@
-(ns sandboxes.java-timezone-sandbox
+(ns time-count.java-timezone-sandbox
   (:import [java.time ZoneId ZoneOffset]))
 
 

@@ -8,4 +8,5 @@
                  [midje "1.8.3" :exclusions [org.clojure/clojure]]]
   :profiles {:dev {:dependencies [[midje "1.8.3" :exclusions [org.clojure/clojure]]]
                    :plugins      [[lein-midje "3.2"]]}}
+  :source-paths ["src" "sandboxes"]
   :test-paths ["test" "explainers"])
