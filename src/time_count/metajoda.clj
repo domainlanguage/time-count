@@ -163,9 +163,7 @@
 ;;;  Allen's Interval Algebra  ;;;
 ;;;  Basic relations           ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(extend-protocol Interval
-  MetaJodaTime
-  (relation [{dt-a :dt :as a} {dt-b :dt :as b}]
+  (defn relation-ct-ct [{dt-a :dt :as a} {dt-b :dt :as b}]
     (let [a-left dt-a
           {a-right :dt} (next-t a)
           b-left dt-b
@@ -197,9 +195,14 @@
              (.isAfter b-right a-left)) :overlapped-by
 
         :else :TBD)
-      )))
+      ))
 
-
+(extend-protocol Interval
+  MetaJodaTime
+  (relation [t1 t2]
+    (cond
+      (not (satisfies? CountableTime t2)) (inverse-relation (relation t2 t1))
+      :else (relation-ct-ct t1 t2))))
 
 ;(defn scale-pairs)
 ;(defn place-value [scale [date & nesting]]

@@ -56,12 +56,15 @@
       (relation (from-iso "2017/2018") (from-iso "2019/2020"))
       => :meets)
 
-(future-fact "RelationBoundedIntervals and CountableTimes can be compared to each other."
+(fact "RelationBoundedIntervals and CountableTimes can be compared to each other."
       (relation (from-iso "2017/2019") (from-iso "2018"))
       => :contains
 
       (relation (from-iso "2018") (from-iso "2017/2019"))
       => :during)
+
+; TODO Show that relating one bound to a CountableTime produces a set of possible relations
+; Then intersecting the two resulting sets yields the single relation of the CT to the RBI
 
 
 (fact "Business rules comparing time are expressed using sets of relations."

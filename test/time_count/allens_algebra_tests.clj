@@ -42,14 +42,26 @@
              (t->> ["2017-W32" "2017-08"] (apply relation)) => :during
              (t->> ["2017-W32-3" "2017-08-09"] (apply relation)) => :equal))
 
+
 (facts "about relation-bounded intervals"
        (fact
          (relation (from-iso "2017/2018") (from-iso "2020/2021")) => :before
-         (relation (from-iso "2017/2018") (from-iso "2017/2021")) => :starts
-         ;     (relation (from-iso "2017") (from-iso "2017/2018")) => :starts
+         (relation (from-iso "2017/2018") (from-iso "2017/2021")) => :starts)
 
-         ))
-; (relation-gen {:starts (iso-to-mj "2017") :finishes (iso-to-mj "2020")}
-;               {:starts (iso-to-mj "2019") :finishes (iso-to-mj "2021")}) => :overlaps
-; (relation-gen (iso-to-mj "2017")
-;               {:starts (iso-to-mj "2020") :finishes (iso-to-mj "2021")}) => :before))
+       (fact "We can relate a CountableTime to a single bound"
+             (relation-bound-starts (from-iso "2017") (from-iso "2019")) => #{:contains :finished-by :overlaps :meets :before}
+             (relation-bound-finishes (from-iso "2021") (from-iso "2019")) => #{:met-by :contains :after :overlapped-by :started-by})
+
+       (fact "We can calculate the relation between a RelationBoundedIntervals and a CountableTime."
+             (relation (from-iso "2017/2018") (from-iso "2016")) => :met-by
+             (relation (from-iso "2017/2018") (from-iso "2017")) => :started-by
+             (relation (from-iso "2017/2018") (from-iso "2017-01")) => :started-by
+             (relation (from-iso "2017-01/2018-12") (from-iso "2017")) => :started-by
+             (relation (from-iso "2017/2018") (from-iso "2018-12")) => :finished-by
+             (relation (from-iso "2017/2018") (from-iso "2018")) => :finished-by
+             (relation (from-iso "2017-01/2018-12") (from-iso "2018")) => :finished-by
+             (relation (from-iso "2017/2018") (from-iso "2015")) => :after)
+
+       (fact "The relation between RelationBoundedInterval and a CountableTime works in either order."
+             (relation (from-iso "2017") (from-iso "2017/2018")) => :starts
+             (relation (from-iso "2017/2018") (from-iso "2017")) => :started-by))

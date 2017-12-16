@@ -71,20 +71,6 @@
   (place-values [t] [])
   (to-nesting [t scales] nil))
 
-; Sketching protocol ...
-
-; (nest :month 2017) => {:starts 2017-01 :ends 2017-12}
-
-; (interval-sequence {:starts 2017-01 :ends 2017-12}) =>
-;    2017-01 2017-02 ...
-
-; (nested-seq :month 2017) => 2017-01 2017-02 ...
-
-; (nest :day {:starts 2017-01 :ends 2017-12})
-; => {:starts 2017-01-01 :ends 2017-12-31}
-
-; (nest [:day :month] 2017)
-; => {:starts 2017-01-01 :finishes 2017-12-31}
 
 (def inverse-relation
   {:equal         :equal
@@ -118,9 +104,43 @@
 
       :else :error)))
 
+(defn relation-bound-starts [starts t]
+  (case (relation starts t)
+    :equal #{:started-by}
+    :before #{:contains :finished-by :overlaps :meets :before}
+    :after #{:after}
+    :meets #{:contains :finished-by :overlaps :meets :before}
+    :met-by #{:met-by}
+    :starts #{:starts :equal :started-by}
+    :started-by #{:started-by}
+    :finishes #{:overlapped-by}
+    :finished-by #{:contains}
+    :during #{:during :overlapped-by :finishes}
+    :contains #{:contains}
+    :overlaps #{:overlaps :finished-by :contains}
+    :overlapped-by #{:overlapped-by}))
+
+(defn relation-bound-finishes [finishes t]
+  (case (relation finishes t)
+    :equal #{:finished-by}
+    :before #{:before}
+    :after #{:contains :started-by :overlapped-by :met-by :after}
+    :meets #{:meets}
+    :met-by #{:contains :started-by :overlapped-by :met-by :after}
+    :starts #{:overlaps}
+    :started-by #{:overlaps}
+    :finishes #{:finishes :equal :finished-by}
+    :finished-by #{:finished-by}
+    :during #{:during :overlapped :starts}
+    :contains #{:contains}
+    :overlaps #{:overlaps}
+    :overlapped-by #{:overlapped-by :started-by :contains}))
+
 (defn relation-rbi-st
   [{a :starts b :finishes} y]
-  :not-implemented-yet)
+  (first (clojure.set/intersection
+    (relation-bound-starts a y)
+    (relation-bound-finishes b y))))
 
 
 ;TODO Put the following in a different ns. allens_algebra or relation-bounded-interval?
