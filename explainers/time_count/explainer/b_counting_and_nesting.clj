@@ -155,7 +155,38 @@
       (t-> "2018" memorial-day-us) => "2018-05-28")
 
 
-;; Rough equivalent of JodaTime's 'plus', dt plus period
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Alternative Derivation of the Same Values.
+;; Because of the underlying model of nested sequences,
+;; there are many equivalent ways to manipulate values
+;; and derive the same results.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn place-value=
+  "Return a predicate function."
+  [scale value]
+  (fn [t]
+    (= value (place-value t scale))))
+
+(def november? (place-value= :month 11))
+
+(defn november-alt-derivation
+  "In the first derivation, November was found using (nth 10)
+  because November is the 11th month (and sequences are zero-based).
+  Here is an equivalent method filtering on place-values."
+  [year]
+  (-> year
+      (nest :month)
+      t-sequence
+      (#(filter november? %))
+      first))                                               ; sequences are zero based!
+
+(fact "November can be derived multiple ways."
+      (t-> "2017" november) => "2017-11"
+      (t-> "2017" november-alt-derivation) => "2017-11")
+
+
+;; TODO Rough equivalent of JodaTime's 'plus', dt plus period
 ;; work in progress
 
 ;(defn nth-or-last [rbi n]
