@@ -1,6 +1,8 @@
 (ns time-count.metajoda
   (:require [time-count.core :refer :all]                   ;[CountableTime next-t Interval ->RelationBoundedInterval]]
-            [time-count.iso8601 :refer :all])
+            [time-count.relation-bounded-intervals :refer [->RelationBoundedInterval]]
+            [time-count.iso8601 :refer :all]
+            [time-count.allens-algebra :refer [Interval relation converse-relation]])
 
   (:import [org.joda.time LocalDateTime DateTimeZone
                           Years Months Weeks Days Hours Minutes Seconds]
@@ -201,7 +203,7 @@
   MetaJodaTime
   (relation [t1 t2]
     (cond
-      (not (satisfies? CountableTime t2)) (inverse-relation (relation t2 t1))
+      (not (satisfies? CountableTime t2)) (converse-relation (relation t2 t1))
       :else (relation-ct-ct t1 t2))))
 
 ;(defn scale-pairs)

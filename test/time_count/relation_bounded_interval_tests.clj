@@ -1,5 +1,6 @@
 (ns time-count.relation-bounded-interval-tests
-  (:require [time-count.core :refer [->RelationBoundedInterval map->RelationBoundedInterval]]
+  (:require ;[time-count.core :refer [->RelationBoundedInterval map->RelationBoundedInterval]]
+            [time-count.metajoda]
             [time-count.iso8601 :refer [from-iso] :as iso]
             [time-count.relation-bounded-intervals :refer :all] ; :refer [flatten-bounds consistent?]]
             [midje.sweet :refer :all]))
@@ -85,7 +86,7 @@
                        {:starts (from-iso "2017-07") :finishes (from-iso "2017-10")}})
       => {:starts (from-iso "2017-06") :finishes (from-iso "2017-10")})
 
-;;How broad should we try to go? :starts / :finishes only?
+;;Right now, only :starts/:finishes are supporte. :meets/:met-by should also be tractable.
 (future-fact "Any pair of consistent, fully-defined intervals have a relation."
              (relation
                {:starts   (from-iso "2016")
@@ -94,15 +95,38 @@
                 :met-by (from-iso "2018")}) => :equal)
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; NOTE: Pairs like :after/before would not
-;; fully specify the interval
-;; For example
-;; {:after 2016 :before 2018} equals 2017?
-;; No, 2016 meets 2017 meets 2018.
-;; We don't want to allow ambiguous or overly confusing cases.
+(fact "RelationBound has a relation to a time"
 
-;; What about consistent, but redundant ones?
-;; {:after 2014 :meets 2016 :met-by 2018} equals 2017
-;; The :after is irrelevant. In principle we could allow these.
+      (relate-bound-to-ct
+        (->RelationBound :starts (from-iso "2015"))
+        (from-iso "2017"))
+      => #{:before :overlaps :contains :finished-by :meets}
+
+      (relate-bound-to-ct
+        (->RelationBound :finishes (from-iso "2018"))
+        (from-iso "2017"))
+      => #{:overlapped-by :started-by :contains}
+
+      (relate-bound-to-ct
+        (->RelationBound :meets (from-iso "2014"))
+        (from-iso "2017"))
+      => #{:before :overlaps :contains :finished-by :meets}
+
+      (relate-bound-to-ct
+        (->RelationBound :met-by (from-iso "2019"))
+        (from-iso "2017"))
+      => #{:after :met-by :overlapped-by :started-by :contains})
+
+
+      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+      ;; NOTE: Pairs like :after/before would not
+      ;; fully specify the interval
+      ;; For example
+      ;; {:after 2016 :before 2018} equals 2017?
+      ;; No, 2016 meets 2017 meets 2018.
+      ;; We don't want to allow ambiguous or overly confusing cases.
+
+      ;; What about consistent, but redundant ones?
+      ;; {:after 2014 :meets 2016 :met-by 2018} equals 2017
+      ;; The :after is irrelevant. In principle we could allow these.
 

@@ -1,6 +1,7 @@
 (ns time-count.stringifying-tests
   (:require [midje.sweet :refer :all]
-            [time-count.core :refer [->RelationBoundedInterval map->RelationBoundedInterval]]
+            [time-count.core]
+            [time-count.relation-bounded-intervals :refer [->RelationBoundedInterval map->RelationBoundedInterval]]
             [time-count.iso8601 :refer :all]
             [time-count.metajoda :refer [->MetaJodaTime]])
   (:import [org.joda.time LocalDateTime DateTime DateTimeZone]))

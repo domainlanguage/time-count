@@ -1,7 +1,8 @@
 (ns time-count.explainer.c-allens-interval-algebra
   (:require
     [time-count.core :refer :all]
-  ;  [ time-count.relation-bounded-intervals :refer []]
+    [time-count.allens-algebra :refer [relation]]
+    [time-count.relation-bounded-intervals :refer [map->RelationBoundedInterval ->RelationBound relate-bound-to-ct]]
     [time-count.iso8601 :refer [to-iso from-iso t->>]]
     [time-count.metajoda]
     [midje.sweet :refer :all]))
@@ -12,7 +13,8 @@
 
 ;; Traditional "before/after" comparison is incomplete, and can result in ambiguous or complex business logic.
 ;; time-count uses Allen's Interval Algebra to compare intervals.
-;; Allen defined 13 basic relations, which are complete, distinct and :
+;; (There is a good explanation here https://www.ics.uci.edu/%7Ealspaugh/cls/shr/allen.html)
+;; Allen defined 13 basic relations, which are distinct and exhaustive:
 (fact "Thirteen basic relations in Allen's Interval Algebra"
       (t->> ["2017" "2017"] (apply relation)) => :equal
       (t->> ["2015" "2017"] (apply relation)) => :before
@@ -63,8 +65,13 @@
       (relation (from-iso "2018") (from-iso "2017/2019"))
       => :during)
 
-; TODO Show that relating one bound to a CountableTime produces a set of possible relations
-; Then intersecting the two resulting sets yields the single relation of the CT to the RBI
+(facts "About RelationBounds (A RelationBoundedInterval is just a combination of one or two boundaries.)"
+       (fact "The relation of a single RelationBound with a CountableTime gives a set of possible basic relations (which is, itself, a relation)."
+             (relate-bound-to-ct
+               (->RelationBound :finishes (from-iso "2018"))
+               (from-iso "2017"))
+             => #{:overlapped-by :started-by :contains}))
+;The basic relations of a RelationBoundedInterval are the intersection of the relations of its two bounds.
 
 
 (fact "Business rules comparing time are expressed using sets of relations."
@@ -86,9 +93,8 @@
                       }
             active-as-of? #((contract :active-relation) (relation % (contract :active-interval)))]
 
-        ;    (active-as-of? (from-iso "2016-12-10T14:30")) => "a"
-        ;    (active-as-of? (from-iso "2016-12-31T23:59")) => "b"
-        ;    (active-as-of? (from-iso "2017-02-15T23:59")) => "c"
-        ;    (active-as-of? (from-iso "2017-03-31T23:59")) => "d"
-        ;    (active-as-of? (from-iso "2017-04-01T00:00")) => "e"
-        ))
+           (active-as-of? (from-iso "2016-12-10T14:30")) => falsey
+            (active-as-of? (from-iso "2016-12-31T23:59")) => falsey
+            (active-as-of? (from-iso "2017-02-15T23:59")) => truthy
+            (active-as-of? (from-iso "2017-03-31T23:59")) => truthy
+            (active-as-of? (from-iso "2017-04-01T00:00")) => falsey))

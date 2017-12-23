@@ -1,6 +1,7 @@
 (ns time-count.core-tests
   (:require [midje.sweet :refer :all]
             [time-count.core :refer :all]
+            [time-count.relation-bounded-intervals :refer [->RelationBoundedInterval]]
             [time-count.metajoda :refer [from-place-values]])
   (:import [time_count.metajoda MetaJodaTime]
            [org.joda.time LocalDateTime]))

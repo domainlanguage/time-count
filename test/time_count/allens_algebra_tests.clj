@@ -1,5 +1,6 @@
 (ns time-count.allens-algebra-tests
   (:require [midje.sweet :refer :all]
+            [time-count.allens-algebra :refer [relation converse-relation]]
             [time-count.core :refer :all]                   ;TODO move relation to separate protocol?
             [time-count.metajoda]                           ; Must have some implementation!
             [time-count.iso8601 :refer [from-iso t-> t->>]]))
@@ -25,12 +26,12 @@
 
        (facts "about inverse relations"
               (fact "Each basic relation has an inverse"
-                    (inverse-relation :equal) => :equal
-                    (inverse-relation :before) => :after
+                    (converse-relation :equal) => :equal
+                    (converse-relation :before) => :after
                     ; etc.
-                    (inverse-relation :equal) => :equal)
+                    (converse-relation :equal) => :equal)
               (fact "Reversing the order of the args produces the inverse relation"
-                    (t->> ["2015" "2017"] (apply relation) inverse-relation)
+                    (t->> ["2015" "2017"] (apply relation) converse-relation)
                     => (t->> ["2017" "2015"] (apply relation))))
 
        (fact "Different scales with same nesting can always be related."
@@ -48,9 +49,9 @@
          (relation (from-iso "2017/2018") (from-iso "2020/2021")) => :before
          (relation (from-iso "2017/2018") (from-iso "2017/2021")) => :starts)
 
-       (fact "We can relate a CountableTime to a single bound"
-             (relation-bound-starts (from-iso "2017") (from-iso "2019")) => #{:contains :finished-by :overlaps :meets :before}
-             (relation-bound-finishes (from-iso "2021") (from-iso "2019")) => #{:met-by :contains :after :overlapped-by :started-by})
+;       (fact "We can relate a CountableTime to a single bound"
+;             (relation-bound-starts (from-iso "2017") (from-iso "2019")) => #{:contains :finished-by :overlaps :meets :before}
+;             (relation-bound-finishes (from-iso "2021") (from-iso "2019")) => #{:met-by :contains :after :overlapped-by :started-by})
 
        (fact "We can calculate the relation between a RelationBoundedIntervals and a CountableTime."
              (relation (from-iso "2017/2018") (from-iso "2016")) => :met-by

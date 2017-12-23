@@ -1,5 +1,7 @@
 (ns time-count.metajoda-tests
-  (:require [time-count.metajoda :refer :all]               ;[->MetaJodaTime]]
+  (:require [time-count.allens-algebra :refer [relation]]
+            [time-count.relation-bounded-intervals :refer [map->RelationBoundedInterval]]
+            [time-count.metajoda :refer :all]               ;[->MetaJodaTime]]
             [time-count.core :refer :all]
             [time-count.iso8601 :refer :all]
             [midje.sweet :refer :all]

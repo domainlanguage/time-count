@@ -1,5 +1,6 @@
 (ns time-count.contrast-with-joda
-  (:require [time-count.core :refer :all]
+  (:require [time-count.allens-algebra :refer [Interval]]
+            [time-count.core :refer :all]
             [time-count.iso8601 :refer [t->]]
             [time-count.metajoda]                           ;Must have SOME impl in namespace
             [midje.sweet :refer :all])

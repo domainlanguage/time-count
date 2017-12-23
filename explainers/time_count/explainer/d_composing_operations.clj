@@ -1,5 +1,6 @@
 (ns time-count.explainer.d-composing-operations
   (:require [time-count.core :refer :all]
+            [time-count.allens-algebra :refer [relation]]
             [time-count.iso8601 :refer [from-iso t-> t->>]]
             [midje.sweet :refer :all]))
 
