@@ -40,7 +40,7 @@
                 (->MetaJodaTime (LocalDateTime. 2017 5 17 0 0 0 0) [:day :month :year])))
       => "2017-05-15/2017-05-17")
 
-(fact "ISO 8601 doesn't seem to have a one-sided interval format. We use - to indicate a missing bound."
+(fact "ISO 8601 doesn't seem to have a one-sided interval format. We use '-' to indicate a missing bound."
       (from-iso "2017-05-15/-")
       => (map->RelationBoundedInterval {:starts (->MetaJodaTime (LocalDateTime. 2017 5 15 0 0 0 0) [:day :month :year])})
       (from-iso "-/2017-05-17")
@@ -59,17 +59,17 @@
 
 
 (future-fact "Sequences can be converted both ways"
-             (to-iso [[(LocalDateTime. 2017 5 15 0 0 0 0) :day :month :year]
-                      [(LocalDateTime. 2017 5 17 0 0 0 0) :day :month :year]])
-             => ["2017-05-15" "2015-05-17"]
+      (to-iso [(->MetaJodaTime (LocalDateTime. 2017 5 15 0 0 0 0) [:day :month :year])
+               (->MetaJodaTime (LocalDateTime. 2017 5 17 0 0 0 0) [:day :month :year])])
+      => ["2017-05-15" "2015-05-17"]
 
-             (from-iso ["2017-05-15" "2015-05-17"])
-             => [[(LocalDateTime. 2017 5 15 0 0 0 0) :day :month :year]
-                 [(LocalDateTime. 2017 5 17 0 0 0 0) :day :month :year]])
+      (from-iso ["2017-05-15" "2015-05-17"])
+      => [(->MetaJodaTime (LocalDateTime. 2017 5 15 0 0 0 0) [:day :month :year])
+          (->MetaJodaTime (LocalDateTime. 2017 5 17 0 0 0 0) [:day :month :year])])
 
-
-;;TODO Other valid ISO formats, such as abbreviated second date, or using period
-
+(fact "The threading operators can handle series of times as input or output."
+      (t-> ["2017-05-15" "2015-05-17"]) => ["2017-05-15" "2015-05-17"]
+      (t->> ["2017-05-15" "2015-05-17"] (map identity)) => ["2017-05-15" "2015-05-17"])
 
 (fact "A time string with time-zone information is parsed into three parts"
       (tz-split "2017-10-31T20:00") => ["2017-10-31T20:00"]

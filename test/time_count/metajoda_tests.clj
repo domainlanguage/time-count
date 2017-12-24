@@ -42,17 +42,5 @@
 (is (= (->MetaJodaTime (LocalDateTime. 2017 1 11 0 0 0 0) [:day :month :year])
        (from-iso-countable-time "2017-01-11")))
 
-;; Place values TODO belongs in .core?
-(facts "about place values"
-       (future-fact "Each scale has a place value"
-                    (place-value :month [(LocalDateTime. 2017 2 28 0 0 0 0) :day :month :year])
-                    => 2)
-       (fact "The time value could be represented as a map of place-values"
-             (place-values (->MetaJodaTime (LocalDateTime. 2017 2 28 0 0 0 0) [:day :month :year]))
-             => [[:day 28] [:month 2] [:year 2017]])
-
-       (fact "Other representations can be created from place-values"
-             (from-place-values [[:day 28] [:month 2] [:year 2017]])
-             => (->MetaJodaTime (LocalDateTime. 2017 2 28 0 0 0 0) [:day :month :year])))
 
 (run-tests)

@@ -1,6 +1,5 @@
 (ns time-count.allens-composition-table
-  (:require [clojure.set :refer [map-invert]])
-  )
+  (:require [clojure.set :refer [map-invert]]))
 
 (def full #{:equal
             :before :after

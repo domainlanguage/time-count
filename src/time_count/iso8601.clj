@@ -3,6 +3,36 @@
             [clojure.set :refer [map-invert]])
   (:import (time_count.relation_bounded_intervals RelationBoundedInterval)))
 
+
+;; A principle of time-count is that there should be a
+;; one-to-one string representation of every value that
+;; can be bidirectionally converted to and from the
+;; other representations used for computation.
+;;
+;; For this purpose, time-count uses a subset of
+;; ISO 8601. It must be a subset because there are
+;; alternative, equivalent representations in the spec,
+;; and that would not be one-to-one.
+;;
+;; The only addition to ISO 8601 (maybe) is that
+;; intervals where one side in undetermined are
+;; represented in time-count as "2017/-" or "-/2017".
+;; If the ISO spec has a representation for this,
+;; I could never find it.
+;;
+;; The most obvious need for string representation is
+;; in data interchange. Tests and even demos are also
+;; important use-cases where string representations matter,
+;; as well as interacting in a REPL.
+;; The t-> and t->> threading macros defined here are
+;; particularly useful for writing clear tests, etc.
+;;
+;; For documentation of ISO 8601, here are a few links:
+;;  Best reference: https://xkcd.com/1179/
+;;  Good introductory explanation: https://en.wikipedia.org/wiki/ISO_8601
+;;  The official source: https://www.iso.org/iso-8601-date-and-time-format.html
+
+
 (defn offset-parse [offset-string]
   (let [[_ hh mm] (re-find #"([+-][0-9][0-9]):([0-9][0-9])" offset-string)]
     [(Integer/parseInt hh) (Integer/parseInt mm)]))
@@ -24,18 +54,6 @@
       :default [unqualified-time])))
 
 
-;; String representation of time values is needed for
-;;  - data interchange
-;;  - tests
-;;  - demos
-;;  - ...
-;;
-;; The chosen string representation of time-count is ISO 8601,
-;; which is well-documented.
-;;  Best reference: https://xkcd.com/1179/
-;;  Good introductory explanation: https://en.wikipedia.org/wiki/ISO_8601
-;;  The official source: https://www.iso.org/iso-8601-date-and-time-format.html
-
 (defn time-string-pattern [time-string]
   (let [[t offset zone] (tz-split time-string)]
     (cond
@@ -47,8 +65,8 @@
       (re-matches #"\d\d\d\d-\d\d\d" t) "yyyy-DDD"
       (re-matches #"\d\d\d\d-W\d\d" t) "xxxx-'W'ww"
       (re-matches #"\d\d\d\d-W\d\d-\d" t) "xxxx-'W'ww-e"
-      :else :NONE)
-    ))
+      :else :NONE)))
+
 
 (defprotocol ISO8601Mappable
   (to-iso [t] "ISO 8601 string representation of the CountableTime or other interval."))
@@ -72,7 +90,6 @@
        (remove empty?)))
 
 
-
 (defn from-iso-to-relation-bounded-interval
   [iso-starts iso-finishes]
   (-> (#(if (not= "-" iso-starts)
@@ -90,7 +107,6 @@
     (if b
       (from-iso-to-relation-bounded-interval a b)
       (from-iso-countable-time a))))
-
 
 
 (def pattern-to-nesting

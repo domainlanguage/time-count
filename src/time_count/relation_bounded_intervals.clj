@@ -4,10 +4,10 @@
             [time-count.core :refer [CountableTime]]
             [clojure.set :refer [intersection]]))
 
-;RelationBoundedInterval is used to express an interval that
-;might not be fully known in terms of its relations to specific intervals.
-;The RelationBoundedInterval is defined in terms of one or two RelationBounds,
+; A RelationBoundedInterval is defined in terms of one or two RelationBounds,
 ; each of which is a time and the relationship of that time to the bounded interval.
+; Currently, to keep the problem tractable, only starts/finishes are supported,
+; which also happens to fit well with ISO 8601.
 ;
 ; Take an example where we are describing interval X in terms of its relations
 ; with other intervals.The RelationBound {:starts 2017} means
@@ -63,7 +63,7 @@
     (if left-bound (relate-bound-to-ct left-bound ct) full)
     (if right-bound (relate-bound-to-ct right-bound ct) full)))
 
-;---Here's an experimental
+;---Here's an experimental alternative.
 (defrecord RelationBoundedInterval2 [left-bound right-bound])
 
 (extend-protocol Interval

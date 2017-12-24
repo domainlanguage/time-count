@@ -9,6 +9,14 @@
            [org.joda.time.format DateTimeFormat]))
 
 
+;; MetaJodaTime is a provided implementation of
+;; CountableTime and Interval protocols.
+;; It should be possible to replace this with
+;; another implementation of those two protocols.
+;; So MetaJodaTime is not a fundamental part of time-count,
+;; but there must be SOME implementation in order to
+;; run the tests and explainers.s
+
 (def scale-to-Period
   {:year   (Years/years 1)
    :month  (Months/months 1)
@@ -136,6 +144,7 @@
   ISO8601CountableTime
   (from-iso-countable-time [time-string]
     ((-> time-string tz-split first time-string-pattern iso-parser) time-string)))
+
 
 (defn nesting-from-place-values [place-vals]
   (map first place-vals))

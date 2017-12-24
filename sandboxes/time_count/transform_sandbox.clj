@@ -212,6 +212,8 @@
 ;;; Now more about an enclosing-immediate interval as a series ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(comment "Stuff to execute in REPL"
+
 ; day 6 of 2017-01 = 2017-01-06
 
 (defn as-head-of-seq [meta-joda]
@@ -282,3 +284,5 @@
 ;   (ambiguous cases, eg March 31 + 1 month = ?
 ; ok for regular cycles (weeks, days, hours, minutes, milliseconds)
 ; month within year is regular cycle.
+
+)

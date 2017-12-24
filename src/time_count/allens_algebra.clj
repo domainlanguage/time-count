@@ -1,6 +1,9 @@
 (ns time-count.allens-algebra
   (:require [time-count.allens-composition-table :refer :all]))
 
+; Terms in this namespace conform to Allen's Interval Algebra,
+; Explained here (among other places): https://www.ics.uci.edu/~alspaugh/cls/shr/allen.html
+
 (defprotocol Interval
   (relation [t1 t2] "Return one of Allen's 13 basic relations."))
 

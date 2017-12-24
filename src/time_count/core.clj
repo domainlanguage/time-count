@@ -1,26 +1,5 @@
 (ns time-count.core
-  (:require [time-count.allens-algebra :refer [relation Interval]]))
-
-;Clojure "protocol" isn't really a full protocol, it is just
-; the interface for manipulating one data structure.
-; Time would be an ok name for the whole protocol, but this
-; particular, part is an element in a sequence of...
-;  named times
-;  countable times
-;  time steps
-;  sequential intervals
-;  ticks
-;  steps
-;  enumerated time
-;  time member (of sequence)
-;  nth time
-;  nth interval
-;  counted intervals
-;  step intervals
-;  ...
-;
-; In contrast to "relation-bounded intervals"
-;
+  (:require [time-count.allens-algebra :refer [relation]]))
 
 
 (defprotocol CountableTime
@@ -55,10 +34,10 @@
 
 (defn place-value
   [t scale]
-  (-> t
-      place-values
-      (#(into {} %))
-      scale))
+  (->> t
+       place-values
+       (into {})
+       scale))
 
 (extend-type nil
   CountableTime
