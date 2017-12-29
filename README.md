@@ -9,8 +9,7 @@ Chronologies are configurable in principle, but this doesn't usually happen
 Time Count is intended as an exploration of alternative ways of thinking about
 time for business software. It is NOT currently suited for use in production code.
 
-See files /time-count/test/time_count/demo.clj
-and /time-count/test/time_count/explainer.clj
+See files /time-count/explainers/time_count/explainer/*
 for illustrations in code.
 
 
@@ -58,9 +57,7 @@ E.g. How many days are in February in 2017? When does New York switch to Dayligh
 
 
 ## UP NEXT
-1. Change metajoda to use localtime until timezone handled right(?)
-2. Finish basic readme.md
-3. Rename repo to 'time-count' DONE
-4. Make repo public
-5. Basic timezone and daylight savings time cases.
-6. Same day next month example.
+1. Finish basic readme.md
+2. Link to video
+3. Make repo public
+4. Same day next month example.
