@@ -13,7 +13,7 @@
 
 ;; Traditional "before/after" comparison is incomplete, and can result in ambiguous or complex business logic.
 ;; time-count uses Allen's Interval Algebra to compare intervals.
-;; (There is a good explanation here https://www.ics.uci.edu/%7Ealspaugh/cls/shr/allen.html)
+;; (There is a good explanation here https://www.ics.uci.edu/~alspaugh/cls/shr/allen.html )
 ;; Allen defined 13 basic relations, which are distinct and exhaustive:
 (fact "Thirteen basic relations in Allen's Interval Algebra"
       (t->> ["2017" "2017"] (apply relation)) => :equal

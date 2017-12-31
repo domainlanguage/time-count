@@ -85,8 +85,7 @@
   (-> year
       (nest :month)
       t-sequence
-      (nth 10)))                                            ; sequences are zero based!
-;TODO alternative: make the sequence, place-values, filter :month 11
+      (nth 10)))                                            ;sequence counts from zero!!
 
 (defn thanksgiving-us [year]
   (-> year
@@ -94,15 +93,14 @@
       (nest :day)
       t-sequence
       (#(filter thursday? %))
-      (nth 3)))                                             ;sequences are zero based!!!
+      (nth 3)))                                             ;sequence counts from zero!!
 
 (fact "US Thanksgiving is 4th Thursday in November"
       (t-> "2017" thanksgiving-us) => "2017-11-23"
       (t-> "2018" thanksgiving-us) => "2018-11-22"
       (t->> "2017/-"
             t-sequence
-            ;TODO (#(t-sequence {:starts %}))                     ;seq of years
-            (map thanksgiving-us)                           ;seq of Thanksgivings
+            (map thanksgiving-us)                           ;sequence of Thanksgivings
             (take 3)) => ["2017-11-23" "2018-11-22" "2019-11-28"])
 
 
@@ -111,36 +109,11 @@
       day-of-week
       (= 1)))
 
-(defn may? [ymd]
-  (-> ymd
-      (place-value :month)
-      (= 5)))
-
-;TODO Make something like this work
-;(defn memorial-day2 [year]
-;  (-> year
-;      (nest :day :month)
-;      t-sequence
-;      (#(filter (every? may? monday?) %)
-;      last)
-
-(defn memorial-day2 [year]
-  (-> year
-      (nest :month)
-      t-sequence
-      (#(filter may? %))
-      first
-      (nest :day)
-      t-sequence
-      (#(filter monday? %))
-      last))
-
-
 (defn may [year]
   (-> year
       (nest :month)
       t-sequence
-      (nth 4)))
+      (nth 4)))                                             ; sequence counts from 0
 
 (defn memorial-day-us [year]
   (-> year
@@ -186,18 +159,72 @@
       (t-> "2017" november-alt-derivation) => "2017-11")
 
 
-;; TODO Rough equivalent of JodaTime's 'plus', dt plus period
-;; work in progress
+;; Rough equivalent of JodaTime's 'plus', dt plus period
+;;  e.g. 2017-12-20 + P3D => 2017-12-23 (add 3 days)
+;; However, it has some peculiar edge-cases
+;;  This looks good: 2017-12-31 + P1M => 2018-01-31 (add 1 month)
+;;  But this might surprise us:
+;;  2018-01-31 + P1M => 2018-02-28
+;;  There is a hidden rule, to use the last day-of-month
+;;  (or hour-of-day, etc.) rather than failing or
+;;  rolling over to the next month.
+;;
+;;  If this functionality is truly needed, it could
+;;  be reproduced in time-count, and could be explicit.
 
-;(defn nth-or-last [rbi n]
-;  nil
-;  )
+(defn th
+  "This isn't really time-count specific. It is just an
+  alternative to nth, except it returns nil rather than
+  throwing IndexOutOfBoundsException.
+  And it counts the index from 1 rather than 0."
+  [a-sequence n]
+  (if (<= n (count a-sequence))
+    (nth a-sequence (dec n))))
 
-;(fact "If there is an nth, it is returned"
-;      (t-> "2017-09" (nest :day) (nth-or-last 5)) => "2017-09-05"
 
-;(defn plus [t [scale n]]
-;  (-> t (enclosing scale)
-;      (#(t-sequence {:starts %}))
-;      (nth n)))
+(defn nest-val-or-last
+  "We are putting the default to use last here.
+   It could have been put somewhere else.
+   Note how natural it is to express JodaTime's
+   default rule in terms of sequences."
+  [t [place val]]
+  (-> t
+      (nest place) t-sequence
+      (#(or (th % val) (last %)))))
 
+(defn nest-vals-or-last
+  "Nest multiple place-values (using the 'or-last' rule)."
+  [t place-vals]
+  (reduce nest-val-or-last t (reverse place-vals)))
+
+(defn places-nested-in
+  "Take the nested values out of their nesting."
+  [t scale]
+  (->> t
+      place-values
+      (take-while #(not= (first %) scale))))
+
+(defn plus
+  "Here the equivalent of a JodaTime period is a place-value
+   for a certain scale (e.g. [:day 5] vs P5D)
+   (Maybe an ISO string mapping for periods/place-values would be an interesting experiment.)
+   This function can add only a one-scale period.
+   Period with multiple scales could be made with reduce."
+  [t scale increment]
+    (-> t
+        (enclosing scale)
+        (#(t-sequence {:starts %}))
+        (nth increment)
+        (nest-vals-or-last (places-nested-in t scale))))
+
+(fact "Place-value/periods can be added to times."
+      (t-> "2017-12-20" (plus :day 3))
+      => "2017-12-23"
+      (t-> "2017-12-31" (plus :month 1))
+      => "2018-01-31")
+
+(fact "When a place-value range is exceeded in plus, use last in sequence."
+      (t-> "2018-01-31" (plus :month 1))
+      => "2018-02-28"
+      (t-> "2018-01-31" (plus :month 3))
+      => "2018-04-30")

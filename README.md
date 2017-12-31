@@ -204,5 +204,4 @@ time_count/explainer/d_composing_operations.clj
 
 
 ## UP NEXT
-1. Make repo public
-2. Same day next month example.
+1. 
