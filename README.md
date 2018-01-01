@@ -35,16 +35,21 @@ E.g. at the most basic level, dates are a count of days:
 Viewing time as sequences nested within other sequences allows us to use
 basic sequence logic to express many common time operations.
 E.g. Days can be nested within months, and months within years.
+
+    (t-> "2017-04-09"
+       (enclosing :month))
+    => "2017-04"
+
 End of month could be expressed as:
 
     (t-> "2017-04-09
        (enclosing :month)
        (nest :day) t-sequence
-       last))  ;Note that last is the normal Clojure operation.
+       last))  ;Note that 'last' is the normal Clojure sequence operation.
 
      => "2017-04-30"
 
-In time-count we avoid viewing time units as a *measure*, as when we
+In time-count we avoid thinking of time units as a *measure*, as when we
 might talk about "addition" of a period to a time.
 There are domains where time as a measure is important
 (e.g. keeping records for a track-meet), but that might be
@@ -59,7 +64,8 @@ So, for example, a date is an interval one day long. A typical meeting
 invitation specifies the start time to the minute. A time value
 could be a specific second, hour, month, year or quarter.
 
-The sequences of countable times are sequences of consecutive intervals.
+The sequences of countable times are sequences of consecutive intervals,
+where each interval meets the interval following it.
 
 An important case is the timestamp, which is usually regarded as an
 "instant". But a timestamp is actually a reading from a physical clock.
@@ -83,10 +89,10 @@ relate any two intervals. These include the familiar "before" and "after",
 but defined unambiguously. It also has relations like "meets" and
 overlaps.
 
-Example (where 2016 would be replaced by a value for that year, etc.):
+Example pseudocode (where 2016 is substituted for a value for the year 2016, etc.):
 
-     (relation 2016 2018) => before
-     (relation 2016 2017) => meets
+     (relation 2016 2018) => :before
+     (relation 2016 2017) => :meets
 
 Any interval can be compared with any other to produce one of Allen's relations.
 Intervals are defined either as part of a sequence or as a "RelationBoundedInterval".
@@ -112,11 +118,12 @@ https://www.ics.uci.edu/~alspaugh/cls/shr/allen.html
 Having a string representation of a time is first-class concern in time-count,
 not just display formatting issue. There is a string representation of
 every time value, with bidirectional operations to convert between the string
-and any other representation used in computations.
+and any other representation used in computations (isomorphic).
 time-count uses ISO 8601, whenever there is a suitable representation,
 
-    (let [t (from-iso "2017-12-29T17:46")]
-      (to-iso t))
+    (-> "2017-12-29T17:46"
+        from-iso
+        to-iso)
     => "2017-12-29T17:46"
 
 For convenience, two threading macros are provided that accept the string
@@ -180,8 +187,13 @@ the basic sequence and nesting operations:
 
     (defn end-of-month [t]
       (-> t (enclosing :month)
-            (nest :day) t-sequence
+            (nest :day)
+            t-sequence
             last))
+
+    (t-> "2017-04-09" end-of-month)
+    => "2017-04-30"
+
 
 This is easier partly *because time-count connects time with
 the standard sequence abstraction of the programming language*,
