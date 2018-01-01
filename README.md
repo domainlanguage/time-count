@@ -194,10 +194,14 @@ the basic sequence and nesting operations:
     (t-> "2017-04-09" end-of-month)
     => "2017-04-30"
 
+    (t-> "2017-04-09T17:46" end-of-month)
+    => "2017-04-30"
+
 
 This is easier partly *because time-count connects time with
 the standard sequence abstraction of the programming language*,
 which supports all sorts of rich operations and compositions.
+(This is true of many modern languages.)
 
 Also, concepts like "end-of-month" may be defined differently
 on different projects. If a business defines end-of-month
