@@ -11,6 +11,7 @@
   (place-values [t] "Pairs of [scale value] in order of nesting.")
   (to-nesting [t scales] "Map this time to a time in a sequence with another nesting."))
 
+; TODO Consider dependencies between t-sequence, relation-bounded-interval, and nest. Where?
 (defn t-sequence [{:keys [starts finishes]}]
   ; :pre must contain starts. starts/finishes must have same nesting.
   (cond

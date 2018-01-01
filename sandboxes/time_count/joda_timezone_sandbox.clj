@@ -6,6 +6,18 @@
            [org.joda.time.format DateTimeFormat ISODateTimeFormat ISOPeriodFormat]))
 
 
+;; NOTICE: This namespace is not really part of the project
+;; It is not source, test, or even example
+;; It's purpose it to make it convenient to do experiments.
+;; (For example, lots of stuff is imported from other namespaces
+;; for convenience, because minimizing dependencies doesn't matter here.)
+;; As such, perhaps it should be removed from the repo.
+;; For now, it remains here because the PURPOSE of time-count
+;; is to explore and illustrate ideas.
+;; So, don't expect this namespace to be tidy or even correct.
+;; But maybe you'll want to fiddle around in it.
+
+
 ;(def isoFormat (-> "yyyy-MM-dd'T'HH:mm" formatter-for-pattern .withOffsetParsed))
 
 ;(def tzFormat (-> "yyyy-MM-dd'T'HH:mmZ" formatter-for-pattern .withOffsetParsed))

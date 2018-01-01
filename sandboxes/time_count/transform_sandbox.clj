@@ -10,6 +10,18 @@
 
 
 
+;; NOTICE: This namespace is not really part of the project
+;; It is not source, test, or even example
+;; It's purpose it to make it convenient to do experiments.
+;; (For example, lots of stuff is imported from other namespaces
+;; for convenience, because minimizing dependencies doesn't matter here.)
+;; As such, perhaps it should be removed from the repo.
+;; For now, it remains here because the PURPOSE of time-count
+;; is to explore and illustrate ideas.
+;; So, don't expect this namespace to be tidy or even correct.
+;; But maybe you'll want to fiddle around in it.
+
+
 ;(defn days-in-month [^DateTime date]
 ;  (while)
 ;  )
@@ -90,8 +102,7 @@
     (.plus date (unit-to-Period (first units)))
     units))
 
-(defn after?
-  "TODO This is too simplistic."
+(defn- after?
   [[^DateTime date1 & units1] [^DateTime date2 & units2]]
   (.isAfter date1 date2))
 
@@ -145,7 +156,7 @@
 (fact
   ;  (-> [(DateTime. 2017 1 10 0 0 0 0) :year :month :day]
   ;      (containing-interval :month))
-  ;  => [(DateTime. 2017 1 31 0 0 0 0) :year :month]  ;;TODO
+  ;  => [(DateTime. 2017 1 31 0 0 0 0) :year :month]
 
   (-> [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
       (enclosing-interval :month)
@@ -170,7 +181,7 @@
   ;  (-> [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
   ;      (containing-interval :month)
   ;      next-t)
-  ;  => [(DateTime. 2017 2 1 0 0 0 0) :month :year] TODO
+  ;  => [(DateTime. 2017 2 1 0 0 0 0) :month :year]
   (-> [(DateTime. 2017 1 10 0 0 0 0) :day :month :year]
       (enclosing-interval :month)
       next-t

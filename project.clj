@@ -4,6 +4,7 @@
   :license {:name "Apache License 2.0"
             :url  "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/algo.generic "0.1.2"]
                  [joda-time "2.9.9"]
                  [midje "1.8.3" :exclusions [org.clojure/clojure]]]
   :profiles {:dev {:dependencies [[midje "1.8.3" :exclusions [org.clojure/clojure]]]

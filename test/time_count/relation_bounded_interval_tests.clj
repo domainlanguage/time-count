@@ -1,48 +1,48 @@
 (ns time-count.relation-bounded-interval-tests
-  (:require ;[time-count.core :refer [->RelationBoundedInterval map->RelationBoundedInterval]]
-            [time-count.metajoda]
-            [time-count.iso8601 :refer [from-iso] :as iso]
-            [time-count.relation-bounded-intervals :refer :all] ; :refer [flatten-bounds consistent?]]
-            [midje.sweet :refer :all]))
+  (:require
+    [time-count.core :refer [t-sequence t-rev-sequence]] ;See TODO comment by t-sequence function.
+    [time-count.metajoda]
+    [time-count.iso8601 :refer [from-iso]]
+    [time-count.relation-bounded-intervals :refer :all]
+    [midje.sweet :refer :all]))
 
-
-; scale-unit interval
-; (part of a sequence of intervals that meet).
-;  -next-t
-;  -interval-seq
-;  -enclosing-immediate
-;  -nested (scale)
-;  -allen's relation
-
-; relation-spec
+; relation-bound
 ;   tuple of relation and an interval
 ;   e.g. [:starts 2017], meaning that, for some interval x, "2017 starts x"
-;        [:overlaps 2017] means that, for some interval x, "2017 overlaps x"
+;        [:ends 2017] means that, for some interval x, "2017 ends x"
+; For exact bounds, only :starts, :ends, :meets, :met-by or :equals would really work.
+; Other relations would constrain the interval, but wouldn't fully define it.
+
+; Alternative concept (not used here currently): relation-spec
+;   - same structure
 ;   - satisfies
 ;     e.g. (satisfies [:starts 2017] 2017-01) => true
 ;          (satisfies [:overlaps 2017] 2017-01) => false
 ;   - combine with AND
 
 ; relation-bounded interval
-;   defined by one or more relation-specs
+;   defined by one or two relation-bounds
 ;   to make it tractable, only :starts and :finishes
 ;   (might add :meets :met-by, a few others, later)
 ;   e.g. {:starts 2017}
 ;   - fully-specified (does it define a single interval?)
 ;   e.g. {:starts 2017 :finishes 2018}
 ;
-;   To make it less confusing, both bounds must be same scale. That will be the scale of the relation-bounded interval.
+;
+;  TODO What are the compatibility rules for the two bounds? (e.g. same nesting, mappable nesting ...)
+;   To make it less confusing, perhaps both bounds should be same scale. That will be the scale of the relation-bounded interval.
 ;   - (scale {:starts 2017 :finishes 2018}) => :year
-;  -TODO What are the compatibility rules for the two bounds? (e.g. same nesting, mappable nesting ...)
-;   -interval-seq (requires :starts, :finishes is optional,
+;   This would make the t-sequence unambiguous -- it would be a sequence starting with the :starts bound ...
+;   - t-sequence (requires :starts, :finishes is optional,
 ;         although interval-last could still have a value with :finishes and not :starts)
-;   -nested (scale)
-;   e.g. ((nested :month) {:starts 2017 :finishes 2018}) => {:starts 2017-01 :finishes 2018-12}
-;   -enclosing-immediate (???)
-;   e.g. (enclosing-immediate {:starts 2017-03 :finishes 2018-03}) => {:starts 2017 :finishes 2018} ???
+;   Requiring :starts and :ends to have the same scale makes nest on a relation-bounded-interval clearer.
+;   TODO? Write a 'nest' function for rbi?
+;   e.g. ((nest :month) {:starts 2017 :finishes 2018}) => {:starts 2017-01 :finishes 2018-12}
+;   (enclosing-immediate {:starts 2017-03 :finishes 2018-03}) => {:starts 2017 :finishes 2018} ???
+;   (enclosing-immediate {:starts 2017-01 :finishes 2017-05} => 2017 (CountableTime) ???
 ;
 
-;; Perhaps boundary relations may not bound both sides.
+;; Boundary relations may not bound both sides.
 ;; It is often the case we record a start time without knowing the end time.
 ;; This is a partial specification of an interval.
 ;; So, how to interpret the half-bounded intervals?
@@ -58,22 +58,66 @@
 ;  Not knowing when it started does not imply that it might be infinitely old.
 ;
 
+(fact "A relation-bounded interval defines a sequence of CountableTimes"
 
-(fact "Boundary relations must be consistent"
-      (consistent? (iso/from-iso "2016/2018")) => truthy
-      (consistent? (iso/from-iso "2019/2016")) => falsey
-      (consistent? (iso/from-iso "2016/2017-06")) => truthy
-      (consistent? (iso/from-iso "2016/2016-06")) => falsey
-      (consistent? (iso/from-iso "2017/-")) => truthy
-      (consistent? (iso/from-iso "-/2017")) => truthy)
+      (t-sequence (map->RelationBoundedInterval
+                    {:starts (from-iso "2016-12-31")
+                     :finishes (from-iso "2017-01-02")}))
+      => [(from-iso "2016-12-31")
+          (from-iso "2017-01-01")
+          (from-iso "2017-01-02")]
+
+      ;t-sequence treats it as a map, so it is the same as this
+      (t-sequence {:starts (from-iso "2016-12-31")
+                   :finishes (from-iso "2017-01-02")})
+      => [(from-iso "2016-12-31")
+          (from-iso "2017-01-01")
+          (from-iso "2017-01-02")]
+
+      (t-rev-sequence (map->RelationBoundedInterval
+                        {:starts (from-iso "2016-12-31")
+                         :finishes (from-iso "2017-01-02")}))
+      => [(from-iso "2017-01-02")
+          (from-iso "2017-01-01")
+          (from-iso "2016-12-31")]
+
+
+      (take 3 (t-sequence (map->RelationBoundedInterval
+                            {:starts (from-iso "2016-12-31")})))
+      => [(from-iso "2016-12-31")
+          (from-iso "2017-01-01")
+          (from-iso "2017-01-02")]
+
+      (take 3 (t-rev-sequence (map->RelationBoundedInterval
+                                {:finishes (from-iso "2017-01-02")})))
+      => [(from-iso "2017-01-02")
+          (from-iso "2017-01-01")
+          (from-iso "2016-12-31")])
+
+
+(fact "Boundary relations must be consistent for all this to work!"
+      (consistent? (from-iso "2016/2018")) => truthy
+      (consistent? (from-iso "2019/2016")) => falsey
+      (consistent? (from-iso "2016/2017-06")) => truthy
+      (consistent? (from-iso "2016/2016-06")) => falsey
+      (consistent? (from-iso "2017/-")) => truthy
+      (consistent? (from-iso "-/2017")) => truthy)
+
+;; This next one is just an experiment with test-writing, and
+;; doesn't add anything to understanding time-count
+(fact "BTW Any predicate can be used as a checking function in midje.
+       Should I rewrite some of the tests this way?"
+      (from-iso "2016/2018") => consistent?
+      (from-iso "2019/2016") => (comp not consistent?))
+;; OK, back to the chase.
 
 (fact "So long as we restrict bounds to :starts and :finishes, deep compositions can be flattened to equivalent intervals."
       (flatten-bounds (->RelationBoundedInterval
                         (->RelationBoundedInterval
-                          (iso/from-iso "2017-06")
-                          (iso/from-iso "2017-07/2017-08"))
-                        (iso/from-iso "2017-07/2017-10")))
-      => (iso/from-iso "2017-06/2017-10"))
+                          (from-iso "2017-06")
+                          (from-iso "2017-07/2017-08"))
+                        (from-iso "2017-07/2017-10")))
+      => (from-iso "2017-06/2017-10"))
 
 (fact "With boundaries restricted to starts/ends, deep compositions can be flattened"
 
@@ -86,7 +130,7 @@
                        {:starts (from-iso "2017-07") :finishes (from-iso "2017-10")}})
       => {:starts (from-iso "2017-06") :finishes (from-iso "2017-10")})
 
-;;Right now, only :starts/:finishes are supporte. :meets/:met-by should also be tractable.
+;;Right now, only :starts/:finishes are supported. :meets/:met-by should also be tractable.
 (future-fact "Any pair of consistent, fully-defined intervals have a relation."
              (relation
                {:starts   (from-iso "2016")
@@ -95,7 +139,10 @@
                 :met-by (from-iso "2018")}) => :equal)
 
 
-(fact "RelationBound has a relation to a time"
+(fact "A single RelationBound has a relation to a CountableTime.
+       Such an indefinite interval has a 'general relation'
+       to the other interval, a set of possible relations,
+       rather than the 'basic relation' of two definite intervals."
 
       (relate-bound-to-ct
         (->RelationBound :starts (from-iso "2015"))
@@ -118,15 +165,15 @@
       => #{:after :met-by :overlapped-by :started-by :contains})
 
 
-      ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-      ;; NOTE: Pairs like :after/before would not
-      ;; fully specify the interval
-      ;; For example
-      ;; {:after 2016 :before 2018} equals 2017?
-      ;; No, 2016 meets 2017 meets 2018.
-      ;; We don't want to allow ambiguous or overly confusing cases.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; NOTE: Pairs like :after/before would not
+;; fully specify the interval
+;; For example
+;; {:after 2016 :before 2018} equals 2017?
+;; No, 2016 meets 2017 meets 2018.
+;; We don't want to allow ambiguous or overly confusing cases.
 
-      ;; What about consistent, but redundant ones?
-      ;; {:after 2014 :meets 2016 :met-by 2018} equals 2017
-      ;; The :after is irrelevant. In principle we could allow these.
+;; What about consistent, but redundant ones?
+;; {:after 2014 :meets 2016 :met-by 2018} equals 2017
+;; The :after is irrelevant. In principle we could allow these.
 
