@@ -8,8 +8,9 @@
 
 ;; Each time value in time-count must have at least two representations,
 ;; a string representation, usually from a subset of ISO8601,
-;; and a representation that enables the basic protocols in time-count.core,
-;; in particular, the CountableTime protocol.
+;; and a representation that implements the basic protocols
+;; in particular time-count.core/CountableTime.
+;;
 ;; MetaJodaTime (the provided default implementation) uses
 ;; a few types of DateTime from the Joda Time library,
 ;; combined with some metadata about nested scales.

@@ -217,7 +217,3 @@ or in some other way suited to their business rules.
 
 See more examples in this file:
 time_count/explainer/d_composing_operations.clj
-
-
-## UP NEXT
-1. 
