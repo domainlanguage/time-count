@@ -217,3 +217,14 @@ or in some other way suited to their business rules.
 
 See more examples in this file:
 time_count/explainer/d_composing_operations.clj
+
+## Up Next
+No firm plan, but probably,
+1. Millisecond as a single-level nesting representing a
+Unix time (milliseconds since the Epoch), and mapable to
+a millisecond-scale time with a UTC-offset.
+2. Representing timezones and offsets with the place-value
+representation (which currently only represents the
+local time component).
+
+
